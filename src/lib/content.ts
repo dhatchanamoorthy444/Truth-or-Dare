@@ -426,7 +426,7 @@ function build(): Challenge[] {
             text: template.replace("{x}", topic),
             type,
             category,
-            difficulty: DIFFICULTIES[(ti + oi) % 4],
+            difficulty: DIFFICULTIES[(ti + oi) % 4] as Difficulty,
           });
         });
       });
