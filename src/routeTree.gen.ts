@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PlayRouteImport } from './routes/play'
 import { Route as PlayersRouteImport } from './routes/players'
+import { Route as StatsRouteImport } from './routes/stats'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -28,35 +29,44 @@ const PlayersRoute = PlayersRouteImport.update({
   path: '/players',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StatsRoute = StatsRouteImport.update({
+  id: '/stats',
+  path: '/stats',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/play': typeof PlayRoute
   '/players': typeof PlayersRoute
+  '/stats': typeof StatsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/play': typeof PlayRoute
   '/players': typeof PlayersRoute
+  '/stats': typeof StatsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/play': typeof PlayRoute
   '/players': typeof PlayersRoute
+  '/stats': typeof StatsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/play' | '/players'
+  fullPaths: '/' | '/play' | '/players' | '/stats'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/play' | '/players'
-  id: '__root__' | '/' | '/play' | '/players'
+  to: '/' | '/play' | '/players' | '/stats'
+  id: '__root__' | '/' | '/play' | '/players' | '/stats'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   PlayRoute: typeof PlayRoute
   PlayersRoute: typeof PlayersRoute
+  StatsRoute: typeof StatsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -82,6 +92,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PlayersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/stats': {
+      id: '/stats'
+      path: '/stats'
+      fullPath: '/stats'
+      preLoaderRoute: typeof StatsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -89,6 +106,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   PlayRoute: PlayRoute,
   PlayersRoute: PlayersRoute,
+  StatsRoute: StatsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
