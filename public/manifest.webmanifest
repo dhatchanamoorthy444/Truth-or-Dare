@@ -1,0 +1,14 @@
+{
+  "name": "Truth or Dare — Neon Party Game",
+  "short_name": "Truth or Dare",
+  "description": "A viral-style Truth or Dare party game with 2000+ challenges, spin wheel, XP and neon animations.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0b0713",
+  "theme_color": "#0b0713",
+  "icons": [
+    { "src": "/favicon.ico", "sizes": "48x48", "type": "image/x-icon" }
+  ]
+}
