@@ -18,7 +18,7 @@ export const Route = createFileRoute("/")({
       {
         property: "og:description",
         content:
-          "2000+ truths and dares, spin wheel, streaks, XP and confetti. Play instantly, no login required.",
+          "A viral-style Truth or Dare game with 2000+ challenges, spin wheel, XP, streaks and neon animations. No login, works offline.",
       },
     ],
   }),
