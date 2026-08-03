@@ -55,6 +55,10 @@ function LobbyPage() {
   const [maxPlayers, setMaxPlayers] = useState(8);
   const [nick, setNick] = useState("");
   const [busy, setBusy] = useState(false);
+  const [presetId, setPresetId] = useState("casual");
+  const [scenarios, setScenarios] = useState<string[]>(["funny", "friendship"]);
+  const [settings, setSettings] = useState<GameSettings>(DEFAULT_SETTINGS);
+  const [advanced, setAdvanced] = useState(false);
 
   useEffect(() => {
     if (profile) setNick(profile.username);
