@@ -7,8 +7,10 @@ import {
   SCENARIOS,
   SKIP_OPTIONS,
   TURN_OPTIONS,
+  VERIFICATION_MODES,
   WHEEL_MODES,
   categoriesForScenarios,
+  formatTurn,
   type GameSettings,
 } from "@/lib/round-engine";
 
@@ -116,12 +118,38 @@ export function HostSettings({
         ))}
       </Row>
 
-      <Row label="Time per turn">
+      <Row label="Challenge timer">
         {TURN_OPTIONS.map((t) => (
           <Chip key={t} active={settings.turnSeconds === t} onClick={() => onChange({ turnSeconds: t })}>
-            {t === 0 ? "Unlimited" : `${t}s`}
+            {formatTurn(t)}
           </Chip>
         ))}
+      </Row>
+
+      <Row label="Dare verification">
+        {VERIFICATION_MODES.map((v) => (
+          <Chip key={v.id} active={settings.verification === v.id} onClick={() => onChange({ verification: v.id })}>
+            {v.label}
+          </Chip>
+        ))}
+      </Row>
+
+      <Row label="Voice chat">
+        <Chip active={settings.voiceChat} onClick={() => onChange({ voiceChat: true })}>
+          On
+        </Chip>
+        <Chip active={!settings.voiceChat} onClick={() => onChange({ voiceChat: false })}>
+          Off
+        </Chip>
+      </Row>
+
+      <Row label="Video call mode">
+        <Chip active={settings.videoChat} onClick={() => onChange({ videoChat: true })}>
+          On
+        </Chip>
+        <Chip active={!settings.videoChat} onClick={() => onChange({ videoChat: false })}>
+          Off
+        </Chip>
       </Row>
 
       <Row label="Skip cards">
