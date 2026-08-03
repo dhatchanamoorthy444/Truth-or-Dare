@@ -292,9 +292,7 @@ function PlayPage() {
             {state.history.slice(0, 6).map((h) => (
               <li key={h.id} className="glass rounded-2xl px-4 py-3 text-xs">
                 <span className="font-bold">{h.player}</span>{" "}
-                <span
-                  className={h.result === "completed" ? "text-truth" : "text-muted-foreground"}
-                >
+                <span className={h.result === "completed" ? "text-truth" : "text-muted-foreground"}>
                   {h.result}
                 </span>{" "}
                 a {h.type}

@@ -7,18 +7,17 @@
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Crown, LogOut, Send, Settings2, ShieldBan, UserMinus } from "lucide-react";
+import { Crown, LogOut, Settings2, ShieldBan, UserMinus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ThemedWorld } from "@/components/game/ThemedWorld";
-import { SpinWheel } from "@/components/game/SpinWheel";
+import { RegretRoulette, type SpinPayload } from "@/components/game/RegretRoulette";
+import { TruthTellerReveal } from "@/components/game/TruthTeller";
+import { ChallengeTimer } from "@/components/game/ChallengeTimer";
+import { RoomChat } from "@/components/game/RoomChat";
+import { MediaRoom } from "@/components/game/MediaRoom";
 import { HostSettings } from "@/components/game/HostSettings";
-import {
-  CinematicLayer,
-  TransferArrow,
-  announce,
-  useCinematic,
-} from "@/components/game/Cinematic";
-import { confetti, fireworks, sfx, vibrate } from "@/components/game/fx";
+import { CinematicLayer, TransferArrow, announce, useCinematic } from "@/components/game/Cinematic";
+import { confetti, fireworks, setMusicMood, sfx, vibrate } from "@/components/game/fx";
 import { PUNISHMENTS, REWARDS } from "@/lib/content";
 import { THEMES, themeFlavour, type ThemeId } from "@/lib/themes";
 import {
@@ -34,8 +33,11 @@ import {
   type RoundPhase,
 } from "@/lib/round-engine";
 import {
+  claimHostIfAbandoned,
+  ensureMembership,
   leaveParty,
   sendMessage,
+  touchHost,
   useParty,
   useProfile,
   type MemberWithProfile,
@@ -63,7 +65,7 @@ export const Route = createFileRoute("/party/$code")({
   component: PartyPage,
 });
 
-const EMOJIS = ["🔥", "😂", "😱", "👏", "💀", "❤️"];
+const EMOJIS = ["😂", "🤣", "😱", "🔥", "❤️", "👏", "💀", "🤯", "🎉", "🙈"];
 
 type ChallengePayload = {
   text: string;
@@ -90,7 +92,6 @@ function PartyPage() {
   const { profile, loading: profileLoading } = useProfile();
   const { party, members, messages, online, typing, me, loading, missing, broadcastTyping } =
     useParty(code, profile?.id);
-  const [chat, setChat] = useState("");
   const [countdown, setCountdown] = useState(5);
   const [now, setNow] = useState(() => Date.now());
   const [showSettings, setShowSettings] = useState(false);
@@ -100,8 +101,10 @@ function PartyPage() {
   const [showWheel, setShowWheel] = useState(false);
   const [voted, setVoted] = useState(false);
   const [showMission, setShowMission] = useState(false);
+  const [reveal, setReveal] = useState<MemberWithProfile | null>(null);
   const { event: cine, play } = useCinematic();
   const chatEnd = useRef<HTMLDivElement>(null);
+  const revealedFor = useRef<string | null>(null);
 
   useEffect(() => {
     const t = window.setInterval(() => setNow(Date.now()), 500);
@@ -126,10 +129,69 @@ function PartyPage() {
   const mystery = (party?.mystery ?? null) as MysteryOutcome | null;
   const recap = (party?.recap ?? null) as Recap | null;
   const imposterIsMe = !!profile && party?.imposter_id === profile.id;
+  const spin = (party?.spin ?? null) as SpinPayload | null;
+  const verdicts = (party?.verdicts ?? {}) as Record<string, boolean>;
+  const wheelPlayers = useMemo(
+    () =>
+      players.map((p) => ({
+        id: p.user_id,
+        name: p.profile?.username ?? "Player",
+        emoji: p.profile?.avatar ?? "🎲",
+      })),
+    [players],
+  );
+  /** Only one client is allowed to commit a spin result — no duplicate wheels. */
+  const spinController = phase === "imposter" ? imposterIsMe : isHost;
   const secondsLeft =
     party?.turn_ends_at && settings.turnSeconds > 0
       ? Math.max(0, Math.ceil((new Date(party.turn_ends_at).getTime() - now) / 1000))
       : null;
+
+  /* ---------- room atmosphere: music follows the game state ---------- */
+  useEffect(() => {
+    if (party?.status === "results") setMusicMood("victory");
+    else if (party?.status !== "playing") setMusicMood("lobby");
+    else if (phase === "imposter" || phase === "victim") setMusicMood("spin");
+    else if (challenge?.type === "dare") setMusicMood("dare");
+    else if (challenge?.type === "truth") setMusicMood("truth");
+    else setMusicMood("lobby");
+    return () => setMusicMood("off");
+  }, [party?.status, phase, challenge?.type]);
+
+  /* ---------- reconnect: silently restore membership ---------- */
+  useEffect(() => {
+    if (!party || !profile || loading) return;
+    if (members.some((m) => m.user_id === profile.id)) return;
+    void ensureMembership(party.code, profile.id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [party?.id, profile?.id, members.length, loading]);
+
+  /* ---------- host heartbeat + automatic host migration ---------- */
+  useEffect(() => {
+    if (!party || !profile) return;
+    const t = window.setInterval(() => {
+      if (isHost) {
+        void touchHost(party.id);
+        return;
+      }
+      void claimHostIfAbandoned(party, members, online, profile.id).then((claimed) => {
+        if (claimed) toast.success("The host left — you're the new host 👑");
+      });
+    }, 8000);
+    return () => window.clearInterval(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [party?.id, isHost, members, online, profile?.id]);
+
+  /* ---------- 🎭 The Truth Teller reveal, seen by everyone ---------- */
+  useEffect(() => {
+    if (phase !== "challenge" || !party?.victim_id) return;
+    const key = `${party.round}:${party.victim_id}`;
+    if (revealedFor.current === key) return;
+    revealedFor.current = key;
+    const victim = players.find((p) => p.user_id === party.victim_id) ?? null;
+    if (victim) setReveal(victim);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, party?.victim_id, party?.round, players.length]);
 
   /* ---------- cinematic round countdown, driven by the host ---------- */
   useEffect(() => {
@@ -189,6 +251,21 @@ function PartyPage() {
     await patchParty({ settings: { ...settings, ...patch } });
   };
 
+  /**
+   * Shared spin: the controller picks the index, everyone animates the same
+   * wheel. The previous victim is excluded so nobody gets picked twice in a row.
+   */
+  const startSpin = async () => {
+    if (!party || !spinController || players.length < 2) return;
+    const eligible = players.filter((p) => players.length < 3 || p.user_id !== party.victim_id);
+    const chosen = pickRandom(eligible);
+    if (!chosen) return;
+    const index = players.findIndex((p) => p.user_id === chosen.user_id);
+    await patchParty({
+      spin: { index, at: Date.now(), by: profile?.id ?? "", ids: players.map((p) => p.user_id) },
+    });
+  };
+
   /** Kicks off the suspenseful countdown before a brand-new round. */
   const startMatch = async () => {
     if (players.length < 2) {
@@ -201,7 +278,12 @@ function PartyPage() {
       players.map((p) =>
         supabase
           .from("party_members")
-          .update({ skips_left: settings.skips, mission: randomMission(), mission_done: false, votes: 0 })
+          .update({
+            skips_left: settings.skips,
+            mission: randomMission(),
+            mission_done: false,
+            votes: 0,
+          })
           .eq("id", p.id),
       ),
     );
@@ -260,6 +342,8 @@ function PartyPage() {
   /** Locks in the victim for this round, rolling a lucky save first. */
   const chooseVictim = async (userId: string) => {
     if (!party) return;
+    // Anti-cheat: the victim for a round can only ever be committed once.
+    if (party.victim_id && party.phase === "challenge") return;
     let target = players.find((p) => p.user_id === userId) ?? null;
     if (target && rollLuckySave(settings.luckyChance)) {
       const others = players.filter((p) => p.user_id !== userId);
@@ -283,6 +367,8 @@ function PartyPage() {
       victim_id: target.user_id,
       current_turn: target.user_id,
       transfer_used: false,
+      verdicts: {},
+      spin: null,
     });
   };
 
@@ -293,7 +379,9 @@ function PartyPage() {
     const first = pickChallenge(effectiveType, settings, party.used_ids);
     if (!first) return;
     const wantsDouble = !!box && box.id === "double-dare" && settings.doubleDare;
-    const second = wantsDouble ? pickChallenge(effectiveType, settings, [...party.used_ids, first.id]) : null;
+    const second = wantsDouble
+      ? pickChallenge(effectiveType, settings, [...party.used_ids, first.id])
+      : null;
 
     sfx("flip", true);
     vibrate(30, true);
@@ -349,7 +437,18 @@ function PartyPage() {
     if (voted) return;
     setVoted(true);
     sfx("tap", true);
-    await supabase.from("party_members").update({ votes: member.votes + 1 }).eq("id", member.id);
+    await supabase
+      .from("party_members")
+      .update({ votes: member.votes + 1 })
+      .eq("id", member.id);
+  };
+
+  /** Spectator verdict on a dare — one vote per player, host has the final say. */
+  const castVerdict = async (pass: boolean) => {
+    if (!party || !profile || myTurn) return;
+    if (profile.id in verdicts) return; // anti-cheat: no vote stuffing
+    sfx("tap", true);
+    await patchParty({ verdicts: { ...verdicts, [profile.id]: pass } });
   };
 
   const completeMission = async () => {
@@ -464,7 +563,8 @@ function PartyPage() {
 
   const kick = async (member: MemberWithProfile, ban: boolean) => {
     if (!party) return;
-    if (ban) await supabase.from("party_bans").insert({ party_id: party.id, user_id: member.user_id });
+    if (ban)
+      await supabase.from("party_bans").insert({ party_id: party.id, user_id: member.user_id });
     await supabase.from("party_members").delete().eq("id", member.id);
   };
 
@@ -495,6 +595,14 @@ function PartyPage() {
       <ThemedWorld theme={theme} dim={party.status === "playing"} />
       <CinematicLayer event={cine} />
       {arrow && <TransferArrow from={arrow.from} to={arrow.to} />}
+      {reveal && (
+        <TruthTellerReveal
+          avatar={reveal.profile?.avatar ?? "🎲"}
+          name={reveal.profile?.username ?? "Player"}
+          playerCode={reveal.profile?.player_code ?? "TD-000000"}
+          onDone={() => setReveal(null)}
+        />
+      )}
 
       {/* ---------- match intro ---------- */}
       {party.status === "intro" && (
@@ -538,16 +646,18 @@ function PartyPage() {
           </div>
           <button
             onClick={() => {
-              void navigator.clipboard?.writeText(
-                `${window.location.origin}/party/${party.code}`,
-              );
+              void navigator.clipboard?.writeText(`${window.location.origin}/party/${party.code}`);
               toast.success("Invite link copied!");
             }}
             className="rounded-xl bg-secondary/60 px-3 py-1.5 font-mono text-xs tracking-[0.2em]"
           >
             {party.code}
           </button>
-          <button onClick={exit} aria-label="Leave party" className="rounded-xl p-2 text-muted-foreground">
+          <button
+            onClick={exit}
+            aria-label="Leave party"
+            className="rounded-xl p-2 text-muted-foreground"
+          >
             <LogOut className="size-4" />
           </button>
         </div>
@@ -580,13 +690,12 @@ function PartyPage() {
               <button
                 onClick={async () => {
                   sfx("tap", true);
-                  await supabase
-                    .from("party_members")
-                    .update({ ready: !me.ready })
-                    .eq("id", me.id);
+                  await supabase.from("party_members").update({ ready: !me.ready }).eq("id", me.id);
                 }}
                 className={`press-3d mt-4 w-full rounded-2xl py-3 text-sm font-black uppercase tracking-widest ${
-                  me.ready ? "bg-truth/20 text-truth" : "bg-primary text-primary-foreground neon-glow"
+                  me.ready
+                    ? "bg-truth/20 text-truth"
+                    : "bg-primary text-primary-foreground neon-glow"
                 }`}
               >
                 {me.ready ? "Ready ✓" : "I'm ready"}
@@ -626,14 +735,16 @@ function PartyPage() {
 
         {party.status === "playing" && phase === "imposter" && (
           <section className="text-center">
-            <p className="text-xs uppercase tracking-widest text-muted-foreground">Round {party.round}</p>
+            <p className="text-xs uppercase tracking-widest text-muted-foreground">
+              Round {party.round}
+            </p>
             {imposterIsMe ? (
               <>
                 <h2 className="mt-2 font-display text-2xl font-black gradient-text">
                   🕵️ You are the Secret Imposter
                 </h2>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Pick tonight's victim — or let the wheel decide.
+                  Pick tonight's victim — or let the roulette decide.
                 </p>
                 <div className="mt-5 grid gap-2 sm:grid-cols-2">
                   {players.map((p) => (
@@ -651,68 +762,59 @@ function PartyPage() {
                   onClick={() => setShowWheel(true)}
                   className="press-3d neon-glow mt-3 w-full rounded-2xl bg-primary py-3 text-xs font-black uppercase tracking-widest text-primary-foreground"
                 >
-                  🎡 Spin the wheel of victims
+                  🎡 Open Regret Roulette
                 </button>
-                {showWheel && (
-                  <div className="mt-6">
-                    <SpinWheel
-                      players={players.map((p) => ({
-                        id: p.user_id,
-                        name: p.profile?.username ?? "Player",
-                        emoji: p.profile?.avatar ?? "🎲",
-                        score: p.score,
-                        truths: p.truths,
-                        dares: p.dares,
-                        skips: 0,
-                      }))}
-                      onPick={(p) => void chooseVictim(p.id)}
-                      sound
-                      haptics
-                    />
-                  </div>
-                )}
               </>
             ) : (
               <>
-                <h2 className="mt-2 font-display text-2xl font-black">🕵️ An imposter is choosing…</h2>
+                <h2 className="mt-2 font-display text-2xl font-black">
+                  🕵️ An imposter is choosing…
+                </h2>
                 <p className="mt-1 text-sm text-muted-foreground">
                   Someone in this room knows who's next. Stay calm.
                 </p>
               </>
             )}
-          </section>
-        )}
-
-        {party.status === "playing" && phase === "victim" && (
-          <section className="text-center">
-            <h2 className="font-display text-2xl font-black">🎡 Wheel of Victims</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {isHost ? "Spin to reveal who's up." : "The host is spinning the wheel…"}
-            </p>
-            {isHost && (
+            {/* Everyone watches the same roulette, whoever triggered it. */}
+            {(showWheel || spin) && (
               <div className="mt-6">
-                <SpinWheel
-                  players={players.map((p) => ({
-                    id: p.user_id,
-                    name: p.profile?.username ?? "Player",
-                    emoji: p.profile?.avatar ?? "🎲",
-                    score: p.score,
-                    truths: p.truths,
-                    dares: p.dares,
-                    skips: 0,
-                  }))}
-                  onPick={(p) => void chooseVictim(p.id)}
-                  sound
-                  haptics
+                <RegretRoulette
+                  players={wheelPlayers}
+                  spin={spin}
+                  canSpin={imposterIsMe}
+                  onSpin={() => void startSpin()}
+                  onSettled={spinController ? (id) => void chooseVictim(id) : undefined}
                 />
               </div>
             )}
           </section>
         )}
 
+        {party.status === "playing" && phase === "victim" && (
+          <section className="text-center">
+            <h2 className="font-display text-2xl font-black gradient-text">🎡 Regret Roulette</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {isHost
+                ? "Spin to reveal the Truth Teller."
+                : "The host is spinning — watch together…"}
+            </p>
+            <div className="mt-6">
+              <RegretRoulette
+                players={wheelPlayers}
+                spin={spin}
+                canSpin={isHost}
+                onSpin={() => void startSpin()}
+                onSettled={spinController ? (id) => void chooseVictim(id) : undefined}
+              />
+            </div>
+          </section>
+        )}
+
         {party.status === "playing" && phase === "recap" && recap && (
           <section className="pop-in text-center">
-            <h2 className="font-display text-3xl font-black gradient-text">Round {party.round} recap</h2>
+            <h2 className="font-display text-3xl font-black gradient-text">
+              Round {party.round} recap
+            </h2>
             <div className="glass-strong mx-auto mt-4 max-w-md space-y-2 rounded-3xl p-5 text-left text-sm">
               <p>
                 🏅 <strong>MVP:</strong> {recap.winner}{" "}
@@ -752,13 +854,8 @@ function PartyPage() {
               </p>
             )}
 
-            {secondsLeft !== null && (
-              <div className="mx-auto mt-3 h-2 w-56 overflow-hidden rounded-full bg-secondary/60">
-                <div
-                  className="h-full rounded-full bg-primary transition-[width] duration-500"
-                  style={{ width: `${(secondsLeft / settings.turnSeconds) * 100}%` }}
-                />
-              </div>
+            {secondsLeft !== null && challenge && (
+              <ChallengeTimer secondsLeft={secondsLeft} totalSeconds={settings.turnSeconds} />
             )}
 
             {!challenge ? (
@@ -787,7 +884,9 @@ function PartyPage() {
                 <p className="text-[11px] uppercase tracking-widest text-muted-foreground">
                   {challenge.flavour}
                 </p>
-                <p className="mt-3 font-display text-xl font-black leading-snug">{challenge.text}</p>
+                <p className="mt-3 font-display text-xl font-black leading-snug">
+                  {challenge.text}
+                </p>
                 {challenge.second && (
                   <p className="mt-3 rounded-2xl bg-dare/15 p-3 font-display text-lg font-black leading-snug text-dare">
                     ⚡ Double Dare: {challenge.second}
@@ -874,7 +973,58 @@ function PartyPage() {
               </div>
             )}
 
-            <div className="mt-5 flex justify-center gap-2">
+            {/* ---------- challenge verification + spectator crowd ---------- */}
+            {challenge && settings.verification !== "honour" && (
+              <div className="glass mx-auto mt-4 max-w-xl rounded-2xl p-4">
+                <p className="text-[11px] font-black uppercase tracking-widest text-muted-foreground">
+                  Proof mode: {settings.verification} ·{" "}
+                  {Object.values(verdicts).filter(Boolean).length} ✅ ·{" "}
+                  {Object.values(verdicts).filter((v) => !v).length} ❌
+                </p>
+                {myTurn ? (
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Show your proof in{" "}
+                    {settings.verification === "chat" ? "the chat" : `the ${settings.verification}`}{" "}
+                    — the room is voting.
+                  </p>
+                ) : (
+                  <div className="mt-3 grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => void castVerdict(true)}
+                      disabled={!!profile && profile.id in verdicts}
+                      className="press-3d rounded-xl bg-truth/20 py-2 text-xs font-black uppercase tracking-widest text-truth disabled:opacity-40"
+                    >
+                      ✅ Completed
+                    </button>
+                    <button
+                      onClick={() => void castVerdict(false)}
+                      disabled={!!profile && profile.id in verdicts}
+                      className="press-3d rounded-xl bg-dare/20 py-2 text-xs font-black uppercase tracking-widest text-dare disabled:opacity-40"
+                    >
+                      ❌ Failed
+                    </button>
+                  </div>
+                )}
+                {isHost && !myTurn && (
+                  <div className="mt-2 grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => void resolveTurn(true)}
+                      className="press-3d rounded-xl bg-primary py-2 text-[10px] font-black uppercase tracking-widest text-primary-foreground"
+                    >
+                      Host: accept
+                    </button>
+                    <button
+                      onClick={() => void resolveTurn(false)}
+                      className="press-3d rounded-xl bg-secondary py-2 text-[10px] font-black uppercase tracking-widest"
+                    >
+                      Host: reject
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="mt-5 flex flex-wrap justify-center gap-2">
               {EMOJIS.map((e) => (
                 <button
                   key={e}
@@ -972,58 +1122,37 @@ function PartyPage() {
           </p>
         )}
 
-        {/* ---------- chat ---------- */}
-        <h2 className="mt-8 text-xs font-bold uppercase tracking-widest text-muted-foreground">
-          Party chat
-        </h2>
-        <div className="glass mt-2 max-h-64 space-y-1.5 overflow-y-auto rounded-2xl p-3">
-          {messages.length === 0 && (
-            <p className="text-xs text-muted-foreground">Say hi to the room…</p>
-          )}
-          {messages.map((m) => (
-            <p key={m.id} className="text-sm">
-              <span className="mr-1">{m.profile?.avatar}</span>
-              <span className="font-bold">{m.profile?.username ?? "Player"}</span>{" "}
-              <span className={m.kind === "system" ? "text-muted-foreground italic" : ""}>
-                {m.body}
-              </span>
-            </p>
-          ))}
-          <div ref={chatEnd} />
-        </div>
-        {typing.length > 0 && (
-          <p className="mt-1 text-[11px] text-muted-foreground">someone is typing…</p>
-        )}
-      </main>
-
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (!profile) return;
-          void sendMessage(party.id, profile.id, chat);
-          setChat("");
-        }}
-        className="fixed inset-x-0 bottom-0 z-30 px-4 pb-4"
-      >
-        <div className="glass mx-auto flex max-w-4xl items-center gap-2 rounded-2xl p-2">
-          <input
-            value={chat}
-            onChange={(e) => {
-              setChat(e.target.value);
-              broadcastTyping();
-            }}
-            maxLength={300}
-            placeholder="Message the party…"
-            className="flex-1 bg-transparent px-3 py-2 text-sm outline-none placeholder:text-muted-foreground"
+        {/* ---------- voice + video ---------- */}
+        {profile && settings.voiceChat && (
+          <MediaRoom
+            partyId={party.id}
+            userId={profile.id}
+            names={Object.fromEntries(
+              members.map((m) => [m.user_id, m.profile?.username ?? "Player"]),
+            )}
+            avatars={Object.fromEntries(members.map((m) => [m.user_id, m.profile?.avatar ?? "🎲"]))}
+            allowVideo={settings.videoChat}
+            isHost={isHost}
+            forceMuted={!!(party.settings as { muteAll?: boolean })?.muteAll}
+            onMuteAll={(on) => void patchParty({ settings: { ...settings, muteAll: on } })}
           />
-          <button
-            aria-label="Send message"
-            className="press-3d rounded-xl bg-primary p-2.5 text-primary-foreground"
-          >
-            <Send className="size-4" />
-          </button>
-        </div>
-      </form>
+        )}
+
+        {/* ---------- live room chat ---------- */}
+        <h2 className="mt-8 text-xs font-bold uppercase tracking-widest text-muted-foreground">
+          Live room chat
+        </h2>
+        <RoomChat
+          partyId={party.id}
+          me={profile}
+          isHost={isHost}
+          messages={messages}
+          typing={typing}
+          memberNames={members.map((m) => m.profile?.username ?? "Player")}
+          onTyping={broadcastTyping}
+        />
+        <div ref={chatEnd} />
+      </main>
     </div>
   );
 }

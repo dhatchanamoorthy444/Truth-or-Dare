@@ -110,10 +110,7 @@ function ProfilePage() {
           if (!t) return;
           update((s) => ({
             ...s,
-            customPrompts: [
-              ...s.customPrompts,
-              { id: `custom-${Date.now()}`, text: t, type },
-            ],
+            customPrompts: [...s.customPrompts, { id: `custom-${Date.now()}`, text: t, type }],
           }));
           setText("");
         }}

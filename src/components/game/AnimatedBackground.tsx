@@ -49,12 +49,7 @@ export function AnimatedBackground() {
             left: `${p.left}%`,
             width: p.size,
             height: p.size,
-            background:
-              p.hue === 0
-                ? "var(--neon)"
-                : p.hue === 1
-                  ? "var(--accent)"
-                  : "var(--dare)",
+            background: p.hue === 0 ? "var(--neon)" : p.hue === 1 ? "var(--accent)" : "var(--dare)",
             opacity: 0.5,
             filter: "blur(0.5px)",
             boxShadow: "0 0 12px currentColor",

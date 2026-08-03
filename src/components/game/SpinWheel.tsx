@@ -4,12 +4,7 @@ import { motion, useAnimation } from "motion/react";
 import type { Player } from "@/lib/game-store";
 import { sfx, vibrate } from "./fx";
 
-const SEGMENT_COLORS = [
-  "var(--neon)",
-  "var(--accent)",
-  "var(--dare)",
-  "var(--truth)",
-];
+const SEGMENT_COLORS = ["var(--neon)", "var(--accent)", "var(--dare)", "var(--truth)"];
 
 export function SpinWheel({
   players,
@@ -29,10 +24,7 @@ export function SpinWheel({
   const seg = 360 / n;
 
   const gradient = `conic-gradient(${players
-    .map(
-      (_, i) =>
-        `${SEGMENT_COLORS[i % SEGMENT_COLORS.length]} ${i * seg}deg ${(i + 1) * seg}deg`,
-    )
+    .map((_, i) => `${SEGMENT_COLORS[i % SEGMENT_COLORS.length]} ${i * seg}deg ${(i + 1) * seg}deg`)
     .join(", ")})`;
 
   async function spin() {

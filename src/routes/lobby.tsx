@@ -2,11 +2,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { HostSettings } from "@/components/game/HostSettings";
-import {
-  DEFAULT_SETTINGS,
-  PRESETS,
-  type GameSettings,
-} from "@/lib/round-engine";
+import { DEFAULT_SETTINGS, PRESETS, type GameSettings } from "@/lib/round-engine";
 import { toast } from "sonner";
 import { Globe, Lock, Users, Zap } from "lucide-react";
 import { Shell } from "@/components/game/Shell";
@@ -270,7 +266,9 @@ function LobbyPage() {
               key={v}
               onClick={() => setVisibility(v)}
               className={`flex flex-1 items-center justify-center gap-2 rounded-2xl py-3 text-xs font-bold uppercase tracking-widest transition ${
-                visibility === v ? "bg-primary text-primary-foreground" : "bg-secondary/60 text-muted-foreground"
+                visibility === v
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-secondary/60 text-muted-foreground"
               }`}
             >
               {v === "private" ? <Lock className="size-3.5" /> : <Globe className="size-3.5" />}
@@ -386,7 +384,9 @@ function LobbyPage() {
                 }
                 className="glass press-3d flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left"
               >
-                <span className="text-2xl">{THEME_LIST.find((t) => t.id === p.theme)?.emoji ?? "🎲"}</span>
+                <span className="text-2xl">
+                  {THEME_LIST.find((t) => t.id === p.theme)?.emoji ?? "🎲"}
+                </span>
                 <span className="flex-1">
                   <span className="block text-sm font-bold">{p.name}</span>
                   <span className="block text-[11px] text-muted-foreground">

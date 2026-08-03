@@ -7,8 +7,10 @@ import {
   SCENARIOS,
   SKIP_OPTIONS,
   TURN_OPTIONS,
+  VERIFICATION_MODES,
   WHEEL_MODES,
   categoriesForScenarios,
+  formatTurn,
   type GameSettings,
 } from "@/lib/round-engine";
 
@@ -94,7 +96,11 @@ export function HostSettings({
 
       <Row label="Wheel selection">
         {WHEEL_MODES.map((w) => (
-          <Chip key={w.id} active={settings.wheelMode === w.id} onClick={() => onChange({ wheelMode: w.id })}>
+          <Chip
+            key={w.id}
+            active={settings.wheelMode === w.id}
+            onClick={() => onChange({ wheelMode: w.id })}
+          >
             {w.label}
           </Chip>
         ))}
@@ -102,7 +108,11 @@ export function HostSettings({
 
       <Row label="Question difficulty">
         {DIFFICULTY_SETTINGS.map((d) => (
-          <Chip key={d.id} active={settings.difficulty === d.id} onClick={() => onChange({ difficulty: d.id })}>
+          <Chip
+            key={d.id}
+            active={settings.difficulty === d.id}
+            onClick={() => onChange({ difficulty: d.id })}
+          >
             {d.label}
           </Chip>
         ))}
@@ -110,18 +120,56 @@ export function HostSettings({
 
       <Row label="Question repeat">
         {REPEAT_MODES.map((r) => (
-          <Chip key={r.id} active={settings.repeat === r.id} onClick={() => onChange({ repeat: r.id })}>
+          <Chip
+            key={r.id}
+            active={settings.repeat === r.id}
+            onClick={() => onChange({ repeat: r.id })}
+          >
             {r.label}
           </Chip>
         ))}
       </Row>
 
-      <Row label="Time per turn">
+      <Row label="Challenge timer">
         {TURN_OPTIONS.map((t) => (
-          <Chip key={t} active={settings.turnSeconds === t} onClick={() => onChange({ turnSeconds: t })}>
-            {t === 0 ? "Unlimited" : `${t}s`}
+          <Chip
+            key={t}
+            active={settings.turnSeconds === t}
+            onClick={() => onChange({ turnSeconds: t })}
+          >
+            {formatTurn(t)}
           </Chip>
         ))}
+      </Row>
+
+      <Row label="Dare verification">
+        {VERIFICATION_MODES.map((v) => (
+          <Chip
+            key={v.id}
+            active={settings.verification === v.id}
+            onClick={() => onChange({ verification: v.id })}
+          >
+            {v.label}
+          </Chip>
+        ))}
+      </Row>
+
+      <Row label="Voice chat">
+        <Chip active={settings.voiceChat} onClick={() => onChange({ voiceChat: true })}>
+          On
+        </Chip>
+        <Chip active={!settings.voiceChat} onClick={() => onChange({ voiceChat: false })}>
+          Off
+        </Chip>
+      </Row>
+
+      <Row label="Video call mode">
+        <Chip active={settings.videoChat} onClick={() => onChange({ videoChat: true })}>
+          On
+        </Chip>
+        <Chip active={!settings.videoChat} onClick={() => onChange({ videoChat: false })}>
+          Off
+        </Chip>
       </Row>
 
       <Row label="Skip cards">
@@ -161,7 +209,11 @@ export function HostSettings({
 
       <Row label="Mystery box chance">
         {MYSTERY_OPTIONS.map((m) => (
-          <Chip key={m} active={settings.mysteryChance === m} onClick={() => onChange({ mysteryChance: m })}>
+          <Chip
+            key={m}
+            active={settings.mysteryChance === m}
+            onClick={() => onChange({ mysteryChance: m })}
+          >
             {m}%
           </Chip>
         ))}
@@ -169,7 +221,11 @@ export function HostSettings({
 
       <Row label="Lucky save chance">
         {LUCKY_OPTIONS.map((l) => (
-          <Chip key={l} active={settings.luckyChance === l} onClick={() => onChange({ luckyChance: l })}>
+          <Chip
+            key={l}
+            active={settings.luckyChance === l}
+            onClick={() => onChange({ luckyChance: l })}
+          >
             {l}%
           </Chip>
         ))}

@@ -22,6 +22,7 @@ export type Database = {
           current_challenge: Json | null
           current_turn: string | null
           host_id: string
+          host_seen_at: string
           id: string
           imposter_id: string | null
           max_players: number
@@ -34,6 +35,7 @@ export type Database = {
           red_score: number
           round: number
           settings: Json
+          spin: Json | null
           status: string
           team_mode: boolean
           theme: string
@@ -41,6 +43,7 @@ export type Database = {
           turn_ends_at: string | null
           updated_at: string
           used_ids: string[]
+          verdicts: Json
           victim_id: string | null
           visibility: string
         }
@@ -51,6 +54,7 @@ export type Database = {
           current_challenge?: Json | null
           current_turn?: string | null
           host_id: string
+          host_seen_at?: string
           id?: string
           imposter_id?: string | null
           max_players?: number
@@ -63,6 +67,7 @@ export type Database = {
           red_score?: number
           round?: number
           settings?: Json
+          spin?: Json | null
           status?: string
           team_mode?: boolean
           theme?: string
@@ -70,6 +75,7 @@ export type Database = {
           turn_ends_at?: string | null
           updated_at?: string
           used_ids?: string[]
+          verdicts?: Json
           victim_id?: string | null
           visibility?: string
         }
@@ -80,6 +86,7 @@ export type Database = {
           current_challenge?: Json | null
           current_turn?: string | null
           host_id?: string
+          host_seen_at?: string
           id?: string
           imposter_id?: string | null
           max_players?: number
@@ -92,6 +99,7 @@ export type Database = {
           red_score?: number
           round?: number
           settings?: Json
+          spin?: Json | null
           status?: string
           team_mode?: boolean
           theme?: string
@@ -99,6 +107,7 @@ export type Database = {
           turn_ends_at?: string | null
           updated_at?: string
           used_ids?: string[]
+          verdicts?: Json
           victim_id?: string | null
           visibility?: string
         }
@@ -199,6 +208,9 @@ export type Database = {
           id: string
           kind: string
           party_id: string
+          pinned: boolean
+          reactions: Json
+          reply_to: string | null
           user_id: string
         }
         Insert: {
@@ -207,6 +219,9 @@ export type Database = {
           id?: string
           kind?: string
           party_id: string
+          pinned?: boolean
+          reactions?: Json
+          reply_to?: string | null
           user_id: string
         }
         Update: {
@@ -215,6 +230,9 @@ export type Database = {
           id?: string
           kind?: string
           party_id?: string
+          pinned?: boolean
+          reactions?: Json
+          reply_to?: string | null
           user_id?: string
         }
         Relationships: [
@@ -223,6 +241,13 @@ export type Database = {
             columns: ["party_id"]
             isOneToOne: false
             referencedRelation: "parties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "party_messages_reply_to_fkey"
+            columns: ["reply_to"]
+            isOneToOne: false
+            referencedRelation: "party_messages"
             referencedColumns: ["id"]
           },
         ]
@@ -309,6 +334,7 @@ export type Database = {
           current_challenge: Json | null
           current_turn: string | null
           host_id: string
+          host_seen_at: string
           id: string
           imposter_id: string | null
           max_players: number
@@ -321,6 +347,7 @@ export type Database = {
           red_score: number
           round: number
           settings: Json
+          spin: Json | null
           status: string
           team_mode: boolean
           theme: string
@@ -328,6 +355,7 @@ export type Database = {
           turn_ends_at: string | null
           updated_at: string
           used_ids: string[]
+          verdicts: Json
           victim_id: string | null
           visibility: string
         }
