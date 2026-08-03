@@ -308,9 +308,14 @@ function LobbyPage() {
                 key={p.id}
                 onClick={() => {
                   setPresetId(p.id);
-                  setSettings({ ...DEFAULT_SETTINGS, ...p.settings });
+                  setSettings((s) => ({
+                    ...s,
+                    categories: p.categories,
+                    difficulty: p.difficulty,
+                  }));
+                  setTheme(p.theme);
                 }}
-                title={p.blurb}
+                title={p.vibe}
                 className={`press-3d rounded-xl px-3 py-2 text-[11px] font-bold transition ${
                   presetId === p.id
                     ? "bg-primary text-primary-foreground neon-glow"
