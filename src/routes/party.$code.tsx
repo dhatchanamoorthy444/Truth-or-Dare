@@ -441,6 +441,14 @@ function PartyPage() {
     await supabase.from("party_members").update({ votes: member.votes + 1 }).eq("id", member.id);
   };
 
+  /** Spectator verdict on a dare — one vote per player, host has the final say. */
+  const castVerdict = async (pass: boolean) => {
+    if (!party || !profile || myTurn) return;
+    if (profile.id in verdicts) return; // anti-cheat: no vote stuffing
+    sfx("tap", true);
+    await patchParty({ verdicts: { ...verdicts, [profile.id]: pass } });
+  };
+
   const completeMission = async () => {
     if (!me || !party || me.mission_done) return;
     confetti(80);
@@ -947,6 +955,54 @@ function PartyPage() {
                       {me.mission_done ? "Completed ✓" : "I did it (+30)"}
                     </button>
                   </>
+                )}
+              </div>
+            )}
+
+            {/* ---------- challenge verification + spectator crowd ---------- */}
+            {challenge && settings.verification !== "honour" && (
+              <div className="glass mx-auto mt-4 max-w-xl rounded-2xl p-4">
+                <p className="text-[11px] font-black uppercase tracking-widest text-muted-foreground">
+                  Proof mode: {settings.verification} · {Object.values(verdicts).filter(Boolean).length} ✅ ·{" "}
+                  {Object.values(verdicts).filter((v) => !v).length} ❌
+                </p>
+                {myTurn ? (
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Show your proof in {settings.verification === "chat" ? "the chat" : `the ${settings.verification}`} — the room is voting.
+                  </p>
+                ) : (
+                  <div className="mt-3 grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => void castVerdict(true)}
+                      disabled={!!profile && profile.id in verdicts}
+                      className="press-3d rounded-xl bg-truth/20 py-2 text-xs font-black uppercase tracking-widest text-truth disabled:opacity-40"
+                    >
+                      ✅ Completed
+                    </button>
+                    <button
+                      onClick={() => void castVerdict(false)}
+                      disabled={!!profile && profile.id in verdicts}
+                      className="press-3d rounded-xl bg-dare/20 py-2 text-xs font-black uppercase tracking-widest text-dare disabled:opacity-40"
+                    >
+                      ❌ Failed
+                    </button>
+                  </div>
+                )}
+                {isHost && !myTurn && (
+                  <div className="mt-2 grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => void resolveTurn(true)}
+                      className="press-3d rounded-xl bg-primary py-2 text-[10px] font-black uppercase tracking-widest text-primary-foreground"
+                    >
+                      Host: accept
+                    </button>
+                    <button
+                      onClick={() => void resolveTurn(false)}
+                      className="press-3d rounded-xl bg-secondary py-2 text-[10px] font-black uppercase tracking-widest"
+                    >
+                      Host: reject
+                    </button>
+                  </div>
                 )}
               </div>
             )}
