@@ -277,8 +277,12 @@ export function useParty(code: string, userId: string | undefined) {
 
   useEffect(() => {
     if (!partyId) return;
+    void supabase.realtime.setAuth();
     const channel = supabase
-      .channel(`party:${partyId}`, { config: { presence: { key: userId ?? "anon" } } })
+      .channel(`party:${partyId}`, {
+        // Private channel: presence/typing are only readable by current members.
+        config: { presence: { key: userId ?? "anon" }, private: true },
+      })
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "parties", filter: `id=eq.${partyId}` },
@@ -324,7 +328,7 @@ export function useParty(code: string, userId: string | undefined) {
 
   const broadcastTyping = useCallback(() => {
     if (!partyId || !userId) return;
-    void supabase.channel(`party:${partyId}`).send({
+    void supabase.channel(`party:${partyId}`, { config: { private: true } }).send({
       type: "broadcast",
       event: "typing",
       payload: { userId },
@@ -513,14 +517,10 @@ export async function claimHostIfAbandoned(
     .filter((m) => !m.spectator && online.includes(m.user_id))
     .sort((a, b) => a.joined_at.localeCompare(b.joined_at))[0];
   if (!heir || heir.user_id !== userId) return false;
-  const { data } = await supabase
-    .from("parties")
-    .update({ host_id: userId, host_seen_at: new Date().toISOString() })
-    .eq("id", party.id)
-    .eq("host_id", party.host_id)
-    .select("id")
-    .maybeSingle();
-  return !!data;
+  // Host transfer is server-side only: the database re-checks that the current
+  // host's heartbeat is genuinely stale before handing over the crown.
+  const { data } = await supabase.rpc("claim_host", { _party: party.id });
+  return data === true;
 }
 
 /** Heartbeat so other clients can tell a host is genuinely still around. */

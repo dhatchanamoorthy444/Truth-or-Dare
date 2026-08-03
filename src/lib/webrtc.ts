@@ -140,9 +140,12 @@ export function useMediaRoom({
   useEffect(() => {
     if (!enabled || !partyId || !userId || !localStream) return;
     const channel = supabase.channel(`media:${partyId}`, {
-      config: { broadcast: { self: false } },
+      // Private channel: the server checks party membership (and bans) before
+      // anyone can subscribe to or publish WebRTC signalling.
+      config: { broadcast: { self: false }, private: true },
     });
     channelRef.current = channel;
+    void supabase.realtime.setAuth();
 
     channel
       .on("broadcast", { event: "signal" }, async ({ payload }) => {
