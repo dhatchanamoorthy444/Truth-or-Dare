@@ -7,7 +7,7 @@
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Crown, LogOut, Send, Settings2, ShieldBan, UserMinus } from "lucide-react";
+import { Crown, LogOut, Settings2, ShieldBan, UserMinus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ThemedWorld } from "@/components/game/ThemedWorld";
 import { RegretRoulette, type SpinPayload } from "@/components/game/RegretRoulette";
@@ -92,7 +92,6 @@ function PartyPage() {
   const { profile, loading: profileLoading } = useProfile();
   const { party, members, messages, online, typing, me, loading, missing, broadcastTyping } =
     useParty(code, profile?.id);
-  const [chat, setChat] = useState("");
   const [countdown, setCountdown] = useState(5);
   const [now, setNow] = useState(() => Date.now());
   const [showSettings, setShowSettings] = useState(false);
