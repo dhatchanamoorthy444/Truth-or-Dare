@@ -7,10 +7,13 @@ import { Shell } from "@/components/game/Shell";
 import { supabase } from "@/integrations/supabase/client";
 import {
   GAME_MODES,
+  AVATAR_CHOICES,
   createParty,
   joinParty,
   quickMatch,
   rankFor,
+  randomName,
+  updateGuestProfile,
   useProfile,
   type GameMode,
   type Party,
@@ -42,18 +45,20 @@ export const Route = createFileRoute("/lobby")({
 
 function LobbyPage() {
   const navigate = useNavigate();
-  const { user, profile, loading } = useProfile();
+  const { user, profile, loading, setProfile } = useProfile();
   const [publicParties, setPublicParties] = useState<Party[]>([]);
   const [code, setCode] = useState("");
   const [mode, setMode] = useState<GameMode>("friends");
   const [theme, setTheme] = useState<ThemeId>("fantasy");
   const [visibility, setVisibility] = useState<"public" | "private">("private");
   const [name, setName] = useState("");
+  const [maxPlayers, setMaxPlayers] = useState(8);
+  const [nick, setNick] = useState("");
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    if (!loading && !user) void navigate({ to: "/auth" });
-  }, [loading, user, navigate]);
+    if (profile) setNick(profile.username);
+  }, [profile]);
 
   useEffect(() => {
     const load = async () => {
@@ -95,6 +100,15 @@ function LobbyPage() {
 
   const rank = rankFor(profile.rank_points);
 
+  const saveNick = async (username: string) => {
+    const updated = await updateGuestProfile(profile.id, { username });
+    if (updated) {
+      setProfile(updated);
+      setNick(updated.username);
+      toast.success(`You're now ${updated.username}`);
+    }
+  };
+
   return (
     <Shell>
       <div className="glass flex items-center gap-3 rounded-3xl p-4">
@@ -108,6 +122,50 @@ function LobbyPage() {
         <span className="rounded-full border border-border/60 px-2 py-1 font-mono text-[10px] text-muted-foreground">
           {profile.player_code}
         </span>
+      </div>
+
+      <div className="glass mt-3 space-y-3 rounded-3xl p-4">
+        <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+          Your nickname — no account needed
+        </p>
+        <div className="flex gap-2">
+          <input
+            value={nick}
+            onChange={(e) => setNick(e.target.value)}
+            maxLength={20}
+            placeholder="Pick a nickname"
+            className="flex-1 rounded-2xl bg-secondary/60 px-4 py-3 text-sm outline-none"
+          />
+          <button
+            onClick={() => void saveNick(nick)}
+            className="press-3d rounded-2xl bg-primary px-4 text-xs font-black uppercase text-primary-foreground"
+          >
+            Save
+          </button>
+          <button
+            aria-label="Random nickname"
+            onClick={() => void saveNick(randomName())}
+            className="press-3d rounded-2xl bg-secondary px-4 text-xs font-black uppercase"
+          >
+            🎲
+          </button>
+        </div>
+        <div className="flex flex-wrap gap-1.5">
+          {AVATAR_CHOICES.map((a) => (
+            <button
+              key={a}
+              onClick={async () => {
+                const updated = await updateGuestProfile(profile.id, { avatar: a });
+                if (updated) setProfile(updated);
+              }}
+              className={`press-3d rounded-xl px-2 py-1 text-xl transition ${
+                profile.avatar === a ? "bg-primary/20 ring-2 ring-primary" : "bg-secondary/50"
+              }`}
+            >
+              {a}
+            </button>
+          ))}
+        </div>
       </div>
 
       <button
@@ -210,6 +268,26 @@ function LobbyPage() {
             </button>
           ))}
         </div>
+        <div>
+          <p className="mb-2 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+            Max players
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {[2, 4, 6, 8, 10, 12, 16, 20].map((n) => (
+              <button
+                key={n}
+                onClick={() => setMaxPlayers(n)}
+                className={`press-3d rounded-xl px-3 py-2 text-xs font-bold transition ${
+                  maxPlayers === n
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-secondary/60 text-muted-foreground"
+                }`}
+              >
+                {n}
+              </button>
+            ))}
+          </div>
+        </div>
         <button
           disabled={busy}
           onClick={() =>
@@ -220,7 +298,7 @@ function LobbyPage() {
                 mode,
                 theme,
                 visibility,
-                maxPlayers: mode === "couples" ? 2 : 20,
+                maxPlayers: mode === "couples" ? 2 : maxPlayers,
               });
               await go(p.code);
             })
