@@ -401,7 +401,13 @@ export async function leaveParty(partyId: string, userId: string, isHost: boolea
   await supabase.from("party_members").delete().eq("party_id", partyId).eq("user_id", userId);
 }
 
-export async function sendMessage(partyId: string, userId: string, body: string, kind = "chat") {
+export async function sendMessage(
+  partyId: string,
+  userId: string,
+  body: string,
+  kind = "chat",
+  replyTo?: string | null,
+) {
   const trimmed = body.trim().slice(0, 300);
   if (!trimmed) return;
   await supabase.from("party_messages").insert({
@@ -409,7 +415,69 @@ export async function sendMessage(partyId: string, userId: string, body: string,
     user_id: userId,
     body: trimmed,
     kind,
+    reply_to: replyTo ?? null,
   });
+}
+
+/** Toggle an emoji reaction on a single chat message. */
+export async function reactToMessage(
+  messageId: string,
+  emoji: string,
+  userId: string,
+  current: Record<string, string[]>,
+) {
+  const list = current[emoji] ?? [];
+  const next = { ...current };
+  next[emoji] = list.includes(userId) ? list.filter((u) => u !== userId) : [...list, userId];
+  if (!next[emoji]!.length) delete next[emoji];
+  await supabase.from("party_messages").update({ reactions: next as never }).eq("id", messageId);
+}
+
+/** Host-only: pin (or unpin) a message to the top of the room. */
+export async function pinMessage(partyId: string, messageId: string, pinned: boolean) {
+  if (pinned) await supabase.from("party_messages").update({ pinned: false }).eq("party_id", partyId).eq("pinned", true);
+  await supabase.from("party_messages").update({ pinned }).eq("id", messageId);
+}
+
+/**
+ * Host migration: if the host has been away from presence for a while, the
+ * longest-standing online player claims the crown. The conditional update means
+ * only one client can ever win the race, so the room never ends up host-less.
+ */
+export async function claimHostIfAbandoned(
+  party: Party,
+  members: PartyMember[],
+  online: string[],
+  userId: string,
+) {
+  if (party.host_id === userId) return false;
+  if (online.includes(party.host_id)) return false;
+  const heir = members
+    .filter((m) => !m.spectator && online.includes(m.user_id))
+    .sort((a, b) => a.joined_at.localeCompare(b.joined_at))[0];
+  if (!heir || heir.user_id !== userId) return false;
+  const { data } = await supabase
+    .from("parties")
+    .update({ host_id: userId, host_seen_at: new Date().toISOString() })
+    .eq("id", party.id)
+    .eq("host_id", party.host_id)
+    .select("id")
+    .maybeSingle();
+  return !!data;
+}
+
+/** Heartbeat so other clients can tell a host is genuinely still around. */
+export async function touchHost(partyId: string) {
+  await supabase.from("parties").update({ host_seen_at: new Date().toISOString() }).eq("id", partyId);
+}
+
+/** Reconnect / duplicate-join safe membership restore. */
+export async function ensureMembership(code: string, userId: string) {
+  try {
+    return await joinParty(code, userId);
+  } catch {
+    return null;
+  }
 }
 export const AVATAR_CHOICES = ["🦊", "🐼", "🦄", "🐯", "🐨", "🐸", "🦁", "🐧", "🐺", "🦉", "🐙", "🐝"];
 
