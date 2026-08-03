@@ -10,7 +10,11 @@ import { toast } from "sonner";
 import { Crown, LogOut, Send, Settings2, ShieldBan, UserMinus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ThemedWorld } from "@/components/game/ThemedWorld";
-import { SpinWheel } from "@/components/game/SpinWheel";
+import { RegretRoulette, type SpinPayload } from "@/components/game/RegretRoulette";
+import { TruthTellerReveal } from "@/components/game/TruthTeller";
+import { ChallengeTimer } from "@/components/game/ChallengeTimer";
+import { RoomChat } from "@/components/game/RoomChat";
+import { MediaRoom } from "@/components/game/MediaRoom";
 import { HostSettings } from "@/components/game/HostSettings";
 import {
   CinematicLayer,
@@ -18,7 +22,7 @@ import {
   announce,
   useCinematic,
 } from "@/components/game/Cinematic";
-import { confetti, fireworks, sfx, vibrate } from "@/components/game/fx";
+import { confetti, fireworks, setMusicMood, sfx, vibrate } from "@/components/game/fx";
 import { PUNISHMENTS, REWARDS } from "@/lib/content";
 import { THEMES, themeFlavour, type ThemeId } from "@/lib/themes";
 import {
@@ -34,8 +38,11 @@ import {
   type RoundPhase,
 } from "@/lib/round-engine";
 import {
+  claimHostIfAbandoned,
+  ensureMembership,
   leaveParty,
   sendMessage,
+  touchHost,
   useParty,
   useProfile,
   type MemberWithProfile,
@@ -63,7 +70,7 @@ export const Route = createFileRoute("/party/$code")({
   component: PartyPage,
 });
 
-const EMOJIS = ["🔥", "😂", "😱", "👏", "💀", "❤️"];
+const EMOJIS = ["😂", "🤣", "😱", "🔥", "❤️", "👏", "💀", "🤯", "🎉", "🙈"];
 
 type ChallengePayload = {
   text: string;
