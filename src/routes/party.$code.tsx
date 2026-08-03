@@ -94,8 +94,16 @@ function PartyPage() {
   const { party, members, messages, online, typing, me, loading, missing, broadcastTyping } =
     useParty(code, profile?.id);
   const [chat, setChat] = useState("");
-  const [countdown, setCountdown] = useState(3);
+  const [countdown, setCountdown] = useState(5);
   const [now, setNow] = useState(() => Date.now());
+  const [showSettings, setShowSettings] = useState(false);
+  const [scenarios, setScenarios] = useState<string[]>(["funny", "friendship"]);
+  const [transferOpen, setTransferOpen] = useState(false);
+  const [arrow, setArrow] = useState<{ from: string; to: string } | null>(null);
+  const [showWheel, setShowWheel] = useState(false);
+  const [voted, setVoted] = useState(false);
+  const [showMission, setShowMission] = useState(false);
+  const { event: cine, play } = useCinematic();
   const chatEnd = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -115,27 +123,62 @@ function PartyPage() {
   const currentPlayer = players.find((p) => p.user_id === party?.current_turn) ?? null;
   const myTurn = !!profile && party?.current_turn === profile.id;
   const challenge = (party?.current_challenge ?? null) as ChallengePayload | null;
-  const secondsLeft = party?.turn_ends_at
-    ? Math.max(0, Math.ceil((new Date(party.turn_ends_at).getTime() - now) / 1000))
-    : null;
+  const settings = useMemo(() => normalizeSettings(party?.settings), [party?.settings]);
+  const phase = (party?.phase ?? "idle") as RoundPhase;
+  const preset = presetById(party?.preset ?? "casual");
+  const mystery = (party?.mystery ?? null) as MysteryOutcome | null;
+  const recap = (party?.recap ?? null) as Recap | null;
+  const imposterIsMe = !!profile && party?.imposter_id === profile.id;
+  const secondsLeft =
+    party?.turn_ends_at && settings.turnSeconds > 0
+      ? Math.max(0, Math.ceil((new Date(party.turn_ends_at).getTime() - now) / 1000))
+      : null;
 
-  /* ---------- intro countdown, driven by the host ---------- */
+  /* ---------- cinematic round countdown, driven by the host ---------- */
   useEffect(() => {
     if (party?.status !== "intro") {
-      setCountdown(3);
+      setCountdown(5);
       return;
     }
+    setCountdown(5);
     sfx("spin", true);
-    const t = window.setInterval(() => setCountdown((c) => c - 1), 1000);
+    announce("Preparing round. Selecting the secret imposter.");
+    const t = window.setInterval(() => setCountdown((c) => (c > 0 ? c - 1 : c)), 1000);
     const done = window.setTimeout(() => {
-      if (isHost) void beginFirstTurn();
-    }, 3400);
+      if (isHost) void beginRound();
+    }, 6400);
     return () => {
       window.clearInterval(t);
       window.clearTimeout(done);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [party?.status, isHost]);
+  }, [party?.status, party?.round, isHost]);
+
+  /* ---------- local flourishes when shared state changes ---------- */
+  useEffect(() => {
+    if (phase === "challenge" && party?.victim_id) {
+      play("spotlight", "TODAY'S VICTIM");
+      sfx("win", true);
+      setVoted(false);
+    }
+    if (phase === "imposter") play("smoke");
+    if (phase === "recap") play("confetti-cannon", "ROUND COMPLETE");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, party?.victim_id]);
+
+  useEffect(() => {
+    if (mystery) {
+      play("portal", `${mystery.emoji} ${mystery.label}`);
+      announce(`Mystery box! ${mystery.label}`);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mystery?.id]);
+
+  useEffect(() => {
+    const last = messages[messages.length - 1];
+    if (last?.kind === "reaction") play("emoji-rain", undefined, last.body);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [messages.length]);
 
   const patchParty = async (patch: Record<string, unknown>) => {
     if (!party) return;
@@ -145,41 +188,201 @@ function PartyPage() {
       .eq("id", party.id);
   };
 
-  const beginFirstTurn = async () => {
-    const first = players[0];
-    if (!first) return;
-    await patchParty({ status: "playing", current_turn: first.user_id, round: 1 });
+  const saveSettings = async (patch: Partial<GameSettings>) => {
+    await patchParty({ settings: { ...settings, ...patch } });
   };
 
+  /** Kicks off the suspenseful countdown before a brand-new round. */
   const startMatch = async () => {
     if (players.length < 2) {
       toast.error("You need at least 2 players to start.");
       return;
     }
     sfx("win", true);
-    await patchParty({ status: "intro" });
+    // Reset skip cards + hand out fresh secret missions.
+    await Promise.all(
+      players.map((p) =>
+        supabase
+          .from("party_members")
+          .update({ skips_left: settings.skips, mission: randomMission(), mission_done: false, votes: 0 })
+          .eq("id", p.id),
+      ),
+    );
+    await patchParty({
+      status: "intro",
+      phase: "countdown",
+      round: 1,
+      recap: null,
+      mystery: null,
+      current_challenge: null,
+      victim_id: null,
+      imposter_id: null,
+      transfer_used: false,
+    });
+  };
+
+  /** Host-only: picks the secret imposter and decides how the victim is chosen. */
+  const beginRound = async () => {
+    if (!party) return;
+    const imposter = settings.imposter ? pickRandom(players) : null;
+    const mode =
+      settings.wheelMode === "mixed"
+        ? (pickRandom(["random", "imposter", "host"]) as "random" | "imposter" | "host")
+        : settings.wheelMode;
+    const chooser = imposter ? mode : mode === "imposter" ? "random" : mode;
+
+    if (chooser === "random") {
+      const victim = pickRandom(players);
+      await patchParty({
+        status: "playing",
+        phase: "challenge",
+        imposter_id: imposter?.user_id ?? null,
+        victim_id: victim?.user_id ?? null,
+        current_turn: victim?.user_id ?? null,
+        transfer_used: false,
+        mystery: null,
+        current_challenge: null,
+        recap: null,
+      });
+      return;
+    }
+
+    await patchParty({
+      status: "playing",
+      phase: chooser === "host" ? "victim" : "imposter",
+      imposter_id: imposter?.user_id ?? null,
+      victim_id: null,
+      current_turn: null,
+      transfer_used: false,
+      mystery: null,
+      current_challenge: null,
+      recap: null,
+    });
+  };
+
+  /** Locks in the victim for this round, rolling a lucky save first. */
+  const chooseVictim = async (userId: string) => {
+    if (!party) return;
+    let target = players.find((p) => p.user_id === userId) ?? null;
+    if (target && rollLuckySave(settings.luckyChance)) {
+      const others = players.filter((p) => p.user_id !== userId);
+      const replacement = pickRandom(others);
+      if (replacement) {
+        play("banner", `🎁 Lucky Save! ${target.profile?.username} escapes`);
+        announce("Lucky save!");
+        await sendMessage(
+          party.id,
+          target.user_id,
+          `escaped with a Lucky Save — ${replacement.profile?.username} is up instead!`,
+          "system",
+        );
+        target = replacement;
+      }
+    }
+    if (!target) return;
+    setShowWheel(false);
+    await patchParty({
+      phase: "challenge",
+      victim_id: target.user_id,
+      current_turn: target.user_id,
+      transfer_used: false,
+    });
   };
 
   const drawChallenge = async (type: "truth" | "dare") => {
     if (!party) return;
-    const pool = CHALLENGES.filter((c) => c.type === type);
-    const picked = pool[Math.floor(Math.random() * pool.length)]!;
+    const box = rollMystery(settings.mysteryChance);
+    const effectiveType = box?.id === "double-dare" ? "dare" : type;
+    const first = pickChallenge(effectiveType, settings, party.used_ids);
+    if (!first) return;
+    const wantsDouble = !!box && box.id === "double-dare" && settings.doubleDare;
+    const second = wantsDouble ? pickChallenge(effectiveType, settings, [...party.used_ids, first.id]) : null;
+
     sfx("flip", true);
     vibrate(30, true);
+
+    const payload: ChallengePayload = {
+      text: first.text,
+      type: effectiveType,
+      flavour: themeFlavour(theme, Math.floor(Math.random() * 97)),
+      ...(second ? { second: second.text } : {}),
+      ...(box ? { bonus: box.bonus } : {}),
+    };
+
     await patchParty({
-      current_challenge: {
-        text: picked.text,
-        type,
-        flavour: themeFlavour(theme, Math.floor(Math.random() * 97)),
-      },
-      turn_ends_at: new Date(Date.now() + TURN_SECONDS * 1000).toISOString(),
+      current_challenge: payload,
+      mystery: box,
+      used_ids: [...party.used_ids, first.id, ...(second ? [second.id] : [])].slice(-400),
+      turn_ends_at:
+        settings.turnSeconds > 0
+          ? new Date(Date.now() + settings.turnSeconds * 1000).toISOString()
+          : null,
     });
+  };
+
+  /** The victim hands the challenge to someone else — once per round. */
+  const transferTo = async (member: MemberWithProfile) => {
+    if (!party || !currentPlayer || party.transfer_used) return;
+    setTransferOpen(false);
+    setArrow({
+      from: currentPlayer.profile?.username ?? "Player",
+      to: member.profile?.username ?? "Player",
+    });
+    window.setTimeout(() => setArrow(null), 1700);
+    play("lightning");
+    announce(`${currentPlayer.profile?.username} passed the challenge!`);
+    await sendMessage(
+      party.id,
+      currentPlayer.user_id,
+      `passed the challenge to ${member.profile?.username}!`,
+      "system",
+    );
+    await patchParty({
+      victim_id: member.user_id,
+      current_turn: member.user_id,
+      transfer_used: true,
+      turn_ends_at:
+        settings.turnSeconds > 0
+          ? new Date(Date.now() + settings.turnSeconds * 1000).toISOString()
+          : null,
+    });
+  };
+
+  const voteFor = async (member: MemberWithProfile) => {
+    if (voted) return;
+    setVoted(true);
+    sfx("tap", true);
+    await supabase.from("party_members").update({ votes: member.votes + 1 }).eq("id", member.id);
+  };
+
+  const completeMission = async () => {
+    if (!me || !party || me.mission_done) return;
+    confetti(80);
+    await supabase
+      .from("party_members")
+      .update({ mission_done: true, score: me.score + 30 })
+      .eq("id", me.id);
+    await sendMessage(party.id, me.user_id, "completed a Secret Mission (+30)", "system");
   };
 
   const resolveTurn = async (completed: boolean) => {
     if (!party || !currentPlayer || !challenge) return;
-    const idx = players.findIndex((p) => p.user_id === currentPlayer.user_id);
-    const next = players[(idx + 1) % players.length]!;
+
+    if (!completed && settings.skips !== -1) {
+      if (currentPlayer.skips_left <= 0) {
+        toast.error("No skip cards left — you have to face it!");
+        return;
+      }
+      await supabase
+        .from("party_members")
+        .update({ skips_left: currentPlayer.skips_left - 1 })
+        .eq("id", currentPlayer.id);
+    }
+
+    const base = challenge.type === "dare" ? 25 : 15;
+    const bonus = challenge.bonus ?? 0;
+    const golden = mystery?.id === "golden-reward";
+    const points = completed ? (golden ? base * 3 : base) + bonus : 0;
 
     if (completed) {
       confetti(90);
@@ -188,7 +391,7 @@ function PartyPage() {
       await supabase
         .from("party_members")
         .update({
-          score: currentPlayer.score + (challenge.type === "dare" ? 25 : 15),
+          score: currentPlayer.score + points,
           truths: currentPlayer.truths + (challenge.type === "truth" ? 1 : 0),
           dares: currentPlayer.dares + (challenge.type === "dare" ? 1 : 0),
         })
@@ -208,22 +411,59 @@ function PartyPage() {
       party.id,
       currentPlayer.user_id,
       completed
-        ? `completed a ${challenge.type} — ${REWARDS[Math.floor(Math.random() * REWARDS.length)]}`
-        : `chickened out — ${PUNISHMENTS[Math.floor(Math.random() * PUNISHMENTS.length)]}`,
+        ? `completed a ${challenge.type} (+${points}) — ${REWARDS[Math.floor(Math.random() * REWARDS.length)]}`
+        : settings.punishments
+          ? `chickened out — ${PUNISHMENTS[Math.floor(Math.random() * PUNISHMENTS.length)]}`
+          : "skipped the challenge",
       "system",
     );
 
-    const finished = party.round >= players.length * 3;
+    const funniest = [...players].sort((a, b) => b.votes - a.votes)[0];
+    const nextRecap: Recap = {
+      winner: currentPlayer.profile?.username ?? "Player",
+      completed,
+      type: challenge.type,
+      points,
+      funniest: funniest?.profile?.username ?? "—",
+      reaction: pickRandom(EMOJIS) ?? "🔥",
+      votes: funniest?.votes ?? 0,
+      mission: !!currentPlayer.mission_done,
+    };
+
     await patchParty({
       ...teamPatch,
+      phase: "recap",
+      recap: nextRecap,
       current_challenge: null,
       turn_ends_at: null,
-      current_turn: next.user_id,
-      round: party.round + 1,
-      status: finished ? "results" : "playing",
     });
-    if (finished) fireworks(5);
   };
+
+  /** After the recap the host rolls straight into the next suspenseful round. */
+  useEffect(() => {
+    if (phase !== "recap" || !isHost || !party) return;
+    const t = window.setTimeout(() => {
+      const finished = party.round >= players.length * 3;
+      if (finished) {
+        fireworks(5);
+        void patchParty({ status: "results", phase: "idle" });
+      } else {
+        void patchParty({
+          status: "intro",
+          phase: "countdown",
+          round: party.round + 1,
+          recap: null,
+          mystery: null,
+          victim_id: null,
+          current_turn: null,
+          imposter_id: null,
+          transfer_used: false,
+        });
+      }
+    }, 6000);
+    return () => window.clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, isHost, party?.round]);
 
   const kick = async (member: MemberWithProfile, ban: boolean) => {
     if (!party) return;
