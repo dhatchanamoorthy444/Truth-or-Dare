@@ -152,16 +152,25 @@ export function useParty(code: string, userId: string | undefined) {
   const [missing, setMissing] = useState(false);
 
   const loadParty = useCallback(async () => {
-    const { data } = await supabase
+    let { data } = await supabase
       .from("parties")
       .select("*")
       .eq("code", code.toUpperCase())
       .maybeSingle();
+    // Private parties are hidden from non-members, so an invited player arriving via
+    // a share link joins through the secured RPC before the row becomes visible.
+    if (!data && userId) {
+      try {
+        data = await joinParty(code, userId);
+      } catch {
+        data = null;
+      }
+    }
     setParty(data ?? null);
     setMissing(!data);
     setLoading(false);
     return data ?? null;
-  }, [code]);
+  }, [code, userId]);
 
   const loadMembers = useCallback(async (partyId: string) => {
     const { data } = await supabase
@@ -311,45 +320,16 @@ export async function createParty(opts: {
 }
 
 export async function joinParty(code: string, userId: string, spectator = false) {
-  const { data: party } = await supabase
-    .from("parties")
-    .select("*")
-    .eq("code", code.toUpperCase().trim())
-    .maybeSingle();
-  if (!party) throw new Error("No party found with that code.");
-
-  const { data: banned } = await supabase
-    .from("party_bans")
-    .select("id")
-    .eq("party_id", party.id)
-    .eq("user_id", userId)
-    .maybeSingle();
-  if (banned) throw new Error("You have been banned from this party.");
-
-  const { count } = await supabase
-    .from("party_members")
-    .select("id", { count: "exact", head: true })
-    .eq("party_id", party.id);
-  if (!spectator && (count ?? 0) >= party.max_players) {
-    throw new Error("That party is full — join as a spectator instead.");
-  }
-
-  const { count: teamRed } = await supabase
-    .from("party_members")
-    .select("id", { count: "exact", head: true })
-    .eq("party_id", party.id)
-    .eq("team", "red");
-
-  await supabase.from("party_members").upsert(
-    {
-      party_id: party.id,
-      user_id: userId,
-      spectator,
-      team: party.team_mode ? ((teamRed ?? 0) * 2 <= (count ?? 0) ? "red" : "blue") : "none",
-    },
-    { onConflict: "party_id,user_id" },
-  );
-  return party;
+  // Joining runs through a secured database function: it checks bans, capacity and
+  // team balance server-side so private parties never need to be readable by outsiders.
+  void userId;
+  const { data, error } = await supabase.rpc("join_party", {
+    _code: code.toUpperCase().trim(),
+    _spectator: spectator,
+  });
+  if (error) throw new Error(error.message.replace(/^.*?:\s*/, "") || "Could not join that party.");
+  if (!data) throw new Error("No party found with that code.");
+  return data as Party;
 }
 
 /** Finds an open public lobby, or spins up a fresh one. */
@@ -363,13 +343,11 @@ export async function quickMatch(userId: string, theme: ThemeId) {
     .limit(10);
 
   for (const party of open ?? []) {
-    const { count } = await supabase
-      .from("party_members")
-      .select("id", { count: "exact", head: true })
-      .eq("party_id", party.id);
-    if ((count ?? 0) < party.max_players) {
-      await joinParty(party.code, userId);
-      return party;
+    try {
+      // join_party rejects full or banned parties, so just try the next one.
+      return await joinParty(party.code, userId);
+    } catch {
+      continue;
     }
   }
 
