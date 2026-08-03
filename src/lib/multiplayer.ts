@@ -407,3 +407,22 @@ export async function sendMessage(partyId: string, userId: string, body: string,
     kind,
   });
 }
+export const AVATAR_CHOICES = ["🦊", "🐼", "🦄", "🐯", "🐨", "🐸", "🦁", "🐧", "🐺", "🦉", "🐙", "🐝"];
+
+/** Nickname / avatar changes for the guest player. */
+export async function updateGuestProfile(
+  userId: string,
+  patch: { username?: string; avatar?: string },
+) {
+  const clean: Record<string, string> = {};
+  if (patch.username) clean["username"] = patch.username.trim().slice(0, 20) || randomName();
+  if (patch.avatar) clean["avatar"] = patch.avatar;
+  if (!Object.keys(clean).length) return null;
+  const { data } = await supabase
+    .from("profiles")
+    .update({ ...clean, updated_at: new Date().toISOString() })
+    .eq("id", userId)
+    .select("*")
+    .maybeSingle();
+  return data;
+}
