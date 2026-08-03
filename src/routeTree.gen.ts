@@ -10,14 +10,27 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as LobbyRouteImport } from './routes/lobby'
 import { Route as PlayRouteImport } from './routes/play'
 import { Route as PlayersRouteImport } from './routes/players'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as StatsRouteImport } from './routes/stats'
+import { Route as PartyCodeRouteImport } from './routes/party.$code'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LobbyRoute = LobbyRouteImport.update({
+  id: '/lobby',
+  path: '/lobby',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PlayRoute = PlayRouteImport.update({
@@ -40,43 +53,85 @@ const StatsRoute = StatsRouteImport.update({
   path: '/stats',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PartyCodeRoute = PartyCodeRouteImport.update({
+  id: '/party/$code',
+  path: '/party/$code',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/lobby': typeof LobbyRoute
   '/play': typeof PlayRoute
   '/players': typeof PlayersRoute
   '/profile': typeof ProfileRoute
   '/stats': typeof StatsRoute
+  '/party/$code': typeof PartyCodeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/lobby': typeof LobbyRoute
   '/play': typeof PlayRoute
   '/players': typeof PlayersRoute
   '/profile': typeof ProfileRoute
   '/stats': typeof StatsRoute
+  '/party/$code': typeof PartyCodeRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/lobby': typeof LobbyRoute
   '/play': typeof PlayRoute
   '/players': typeof PlayersRoute
   '/profile': typeof ProfileRoute
   '/stats': typeof StatsRoute
+  '/party/$code': typeof PartyCodeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/play' | '/players' | '/profile' | '/stats'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/lobby'
+    | '/play'
+    | '/players'
+    | '/profile'
+    | '/stats'
+    | '/party/$code'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/play' | '/players' | '/profile' | '/stats'
-  id: '__root__' | '/' | '/play' | '/players' | '/profile' | '/stats'
+  to:
+    | '/'
+    | '/auth'
+    | '/lobby'
+    | '/play'
+    | '/players'
+    | '/profile'
+    | '/stats'
+    | '/party/$code'
+  id:
+    | '__root__'
+    | '/'
+    | '/auth'
+    | '/lobby'
+    | '/play'
+    | '/players'
+    | '/profile'
+    | '/stats'
+    | '/party/$code'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthRoute: typeof AuthRoute
+  LobbyRoute: typeof LobbyRoute
   PlayRoute: typeof PlayRoute
   PlayersRoute: typeof PlayersRoute
   ProfileRoute: typeof ProfileRoute
   StatsRoute: typeof StatsRoute
+  PartyCodeRoute: typeof PartyCodeRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -86,6 +141,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lobby': {
+      id: '/lobby'
+      path: '/lobby'
+      fullPath: '/lobby'
+      preLoaderRoute: typeof LobbyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/play': {
@@ -116,26 +185,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StatsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/party/$code': {
+      id: '/party/$code'
+      path: '/party/$code'
+      fullPath: '/party/$code'
+      preLoaderRoute: typeof PartyCodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthRoute: AuthRoute,
+  LobbyRoute: LobbyRoute,
   PlayRoute: PlayRoute,
   PlayersRoute: PlayersRoute,
   ProfileRoute: ProfileRoute,
   StatsRoute: StatsRoute,
+  PartyCodeRoute: PartyCodeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
