@@ -1,6 +1,6 @@
 /** Shared app chrome: animated backdrop, top bar, bottom nav, theme handling. */
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Dices, Home, Trophy, Users, User, Moon, Sun, Volume2, VolumeX } from "lucide-react";
+import { Dices, Home, Globe, Trophy, User, Moon, Sun, Volume2, VolumeX } from "lucide-react";
 import { useEffect, type ReactNode } from "react";
 import { AnimatedBackground } from "./AnimatedBackground";
 import { useGame } from "@/lib/game-store";
@@ -9,7 +9,7 @@ import { sfx, toggleMusic } from "./fx";
 const NAV = [
   { to: "/", label: "Home", icon: Home },
   { to: "/play", label: "Play", icon: Dices },
-  { to: "/players", label: "Players", icon: Users },
+  { to: "/lobby", label: "Online", icon: Globe },
   { to: "/stats", label: "Stats", icon: Trophy },
   { to: "/profile", label: "Profile", icon: User },
 ] as const;
