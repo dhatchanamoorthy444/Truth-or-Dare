@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { Flame, Gift, Sparkles, Zap } from "lucide-react";
 import { Shell } from "@/components/game/Shell";
 import { useGame } from "@/lib/game-store";
@@ -29,12 +30,16 @@ function Index() {
   const { state, setSettings, claimDaily } = useGame();
   const { settings, xp, streak, dailyClaimed, sampleId } = state;
   const canClaim = dailyClaimed !== new Date().toDateString();
+  // The sample ID is generated client-side, so hold it back until after
+  // hydration to keep the server and client markup identical.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   return (
     <Shell>
       <section className="text-center">
         <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-muted-foreground">
-          {sampleId} · Guest mode
+          {mounted ? `${sampleId} · Guest mode` : "Guest mode"}
         </p>
         <h1 className="mt-3 font-display text-5xl font-black leading-[0.95] sm:text-6xl">
           <span className="gradient-text">TRUTH</span>
