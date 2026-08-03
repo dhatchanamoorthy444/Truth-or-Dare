@@ -584,6 +584,14 @@ function PartyPage() {
       <ThemedWorld theme={theme} dim={party.status === "playing"} />
       <CinematicLayer event={cine} />
       {arrow && <TransferArrow from={arrow.from} to={arrow.to} />}
+      {reveal && (
+        <TruthTellerReveal
+          avatar={reveal.profile?.avatar ?? "🎲"}
+          name={reveal.profile?.username ?? "Player"}
+          playerCode={reveal.profile?.player_code ?? "TD-000000"}
+          onDone={() => setReveal(null)}
+        />
+      )}
 
       {/* ---------- match intro ---------- */}
       {party.status === "intro" && (
@@ -826,13 +834,8 @@ function PartyPage() {
               </p>
             )}
 
-            {secondsLeft !== null && (
-              <div className="mx-auto mt-3 h-2 w-56 overflow-hidden rounded-full bg-secondary/60">
-                <div
-                  className="h-full rounded-full bg-primary transition-[width] duration-500"
-                  style={{ width: `${(secondsLeft / settings.turnSeconds) * 100}%` }}
-                />
-              </div>
+            {secondsLeft !== null && challenge && (
+              <ChallengeTimer secondsLeft={secondsLeft} totalSeconds={settings.turnSeconds} />
             )}
 
             {!challenge ? (
