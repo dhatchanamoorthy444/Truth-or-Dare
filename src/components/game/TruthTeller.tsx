@@ -28,8 +28,8 @@ export function TruthTellerReveal({
   }, []);
 
   return (
-    <div className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-background/75 px-6 backdrop-blur-xl">
-      <div className="spotlight-sweep absolute left-1/2 top-1/2 size-[85vmin] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,var(--neon)_0%,transparent_62%)] opacity-60" />
+    <div className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-background/92 px-6 backdrop-blur-xl">
+      <div className="spotlight-sweep absolute left-1/2 top-1/2 size-[85vmin] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,var(--neon)_0%,transparent_62%)] opacity-30" />
       <motion.div
         initial={{ scale: 0.7, opacity: 0, y: 30 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
