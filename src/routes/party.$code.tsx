@@ -496,6 +496,8 @@ function PartyPage() {
   return (
     <div className="relative min-h-screen">
       <ThemedWorld theme={theme} dim={party.status === "playing"} />
+      <CinematicLayer event={cine} />
+      {arrow && <TransferArrow from={arrow.from} to={arrow.to} />}
 
       {/* ---------- match intro ---------- */}
       {party.status === "intro" && (
@@ -507,12 +509,21 @@ function PartyPage() {
             {world.locations[party.round % world.locations.length]}
           </p>
           <div className="mt-6 flex flex-wrap justify-center gap-2">
-            {players.map((p) => (
-              <span key={p.id} className="glass rounded-2xl px-3 py-2 text-xs font-bold">
+            {players.map((p, i) => (
+              <span
+                key={p.id}
+                className="glass shuffle-card rounded-2xl px-3 py-2 text-xs font-bold"
+                style={{ animationDelay: `${i * 90}ms` }}
+              >
                 {p.profile?.avatar} {p.profile?.username}
               </span>
             ))}
           </div>
+          {settings.imposter && (
+            <p className="mt-5 font-display text-sm font-black uppercase tracking-[0.25em] text-primary neon-text">
+              Selecting the secret imposter…
+            </p>
+          )}
           <p key={countdown} className="countdown-pop mt-8 font-display text-8xl font-black">
             {countdown > 0 ? countdown : "GO"}
           </p>
