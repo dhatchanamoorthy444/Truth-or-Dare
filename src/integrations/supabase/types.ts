@@ -261,6 +261,36 @@ export type Database = {
         Args: { _party: string; _user: string }
         Returns: boolean
       }
+      join_party: {
+        Args: { _code: string; _spectator?: boolean }
+        Returns: {
+          blue_score: number
+          code: string
+          created_at: string
+          current_challenge: Json | null
+          current_turn: string | null
+          host_id: string
+          id: string
+          max_players: number
+          mode: string
+          name: string
+          red_score: number
+          round: number
+          status: string
+          team_mode: boolean
+          theme: string
+          turn_ends_at: string | null
+          updated_at: string
+          visibility: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "parties"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      shares_party: { Args: { _a: string; _b: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
