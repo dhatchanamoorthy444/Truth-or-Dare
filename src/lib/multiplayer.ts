@@ -158,20 +158,24 @@ export function useParty(code: string, userId: string | undefined) {
   const loadMembers = useCallback(async (partyId: string) => {
     const { data } = await supabase
       .from("party_members")
-      .select("*, profile:profiles(*)")
+      .select("*")
       .eq("party_id", partyId)
       .order("joined_at");
-    setMembers((data ?? []) as unknown as MemberWithProfile[]);
+    const rows = data ?? [];
+    const byId = await profilesFor(rows.map((r) => r.user_id));
+    setMembers(rows.map((r) => ({ ...r, profile: byId[r.user_id] ?? null })));
   }, []);
 
   const loadMessages = useCallback(async (partyId: string) => {
     const { data } = await supabase
       .from("party_messages")
-      .select("*, profile:profiles(*)")
+      .select("*")
       .eq("party_id", partyId)
       .order("created_at", { ascending: false })
       .limit(60);
-    setMessages(((data ?? []) as unknown as (PartyMessage & { profile: Profile | null })[]).reverse());
+    const rows = (data ?? []).reverse();
+    const byId = await profilesFor(rows.map((r) => r.user_id));
+    setMessages(rows.map((r) => ({ ...r, profile: byId[r.user_id] ?? null })));
   }, []);
 
   useEffect(() => {
