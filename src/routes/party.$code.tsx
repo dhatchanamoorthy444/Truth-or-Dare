@@ -7,12 +7,35 @@
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Crown, LogOut, Send, ShieldBan, UserMinus } from "lucide-react";
+import { Crown, LogOut, Send, Settings2, ShieldBan, UserMinus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ThemedWorld } from "@/components/game/ThemedWorld";
+import { SpinWheel } from "@/components/game/SpinWheel";
+import { HostSettings } from "@/components/game/HostSettings";
+import {
+  CinematicLayer,
+  TransferArrow,
+  announce,
+  useCinematic,
+} from "@/components/game/Cinematic";
 import { confetti, fireworks, sfx, vibrate } from "@/components/game/fx";
-import { CHALLENGES, PUNISHMENTS, REWARDS } from "@/lib/content";
+import { PUNISHMENTS, REWARDS } from "@/lib/content";
 import { THEMES, themeFlavour, type ThemeId } from "@/lib/themes";
+import {
+  MYSTERY_OUTCOMES,
+  SCENARIOS,
+  categoriesForScenarios,
+  normalizeSettings,
+  pickChallenge,
+  pickRandom,
+  presetById,
+  randomMission,
+  rollLuckySave,
+  rollMystery,
+  type GameSettings,
+  type MysteryOutcome,
+  type RoundPhase,
+} from "@/lib/round-engine";
 import {
   leaveParty,
   sendMessage,
@@ -43,10 +66,26 @@ export const Route = createFileRoute("/party/$code")({
   component: PartyPage,
 });
 
-const TURN_SECONDS = 45;
 const EMOJIS = ["🔥", "😂", "😱", "👏", "💀", "❤️"];
 
-type ChallengePayload = { text: string; type: "truth" | "dare"; flavour: string };
+type ChallengePayload = {
+  text: string;
+  second?: string;
+  type: "truth" | "dare";
+  flavour: string;
+  bonus?: number;
+};
+
+type Recap = {
+  winner: string;
+  completed: boolean;
+  type: string;
+  points: number;
+  funniest: string;
+  reaction: string;
+  votes: number;
+  mission: boolean;
+};
 
 function PartyPage() {
   const { code } = useParams({ from: "/party/$code" });
