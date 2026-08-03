@@ -22,9 +22,6 @@ import { confetti, fireworks, sfx, vibrate } from "@/components/game/fx";
 import { PUNISHMENTS, REWARDS } from "@/lib/content";
 import { THEMES, themeFlavour, type ThemeId } from "@/lib/themes";
 import {
-  MYSTERY_OUTCOMES,
-  SCENARIOS,
-  categoriesForScenarios,
   normalizeSettings,
   pickChallenge,
   pickRandom,
