@@ -14,6 +14,8 @@ import type { ThemeId } from "./themes";
 export type WheelMode = "random" | "imposter" | "host" | "mixed";
 export type RepeatMode = "never" | "allow" | "random";
 export type DifficultySetting = Difficulty | "mixed";
+/** How a dare has to be proven to the room. */
+export type VerificationMode = "honour" | "chat" | "voice" | "video" | "photo";
 
 export interface GameSettings {
   imposter: boolean;
@@ -33,6 +35,10 @@ export interface GameSettings {
   skips: number;
   doubleDare: boolean;
   categories: Category[];
+  /** Dare proof mode + room media toggles. */
+  verification: VerificationMode;
+  voiceChat: boolean;
+  videoChat: boolean;
 }
 
 export const DEFAULT_SETTINGS: GameSettings = {
@@ -41,7 +47,7 @@ export const DEFAULT_SETTINGS: GameSettings = {
   wheelMode: "mixed",
   difficulty: "mixed",
   repeat: "never",
-  turnSeconds: 45,
+  turnSeconds: 300,
   punishments: true,
   voting: false,
   mysteryChance: 20,
@@ -49,9 +55,23 @@ export const DEFAULT_SETTINGS: GameSettings = {
   skips: 1,
   doubleDare: true,
   categories: ["friends", "funny", "party"],
+  verification: "honour",
+  voiceChat: true,
+  videoChat: false,
 };
 
-export const TURN_OPTIONS = [15, 30, 60, 90, 0] as const;
+export const TURN_OPTIONS = [30, 60, 120, 300, 600, 0] as const;
+export const VERIFICATION_MODES: { id: VerificationMode; label: string }[] = [
+  { id: "honour", label: "Honour system" },
+  { id: "chat", label: "Chat proof" },
+  { id: "voice", label: "Voice proof" },
+  { id: "video", label: "Video proof" },
+  { id: "photo", label: "Photo proof" },
+];
+
+/** "5m" / "30s" style label for a turn duration. */
+export const formatTurn = (s: number) =>
+  s === 0 ? "Unlimited" : s % 60 === 0 ? `${s / 60}m` : `${s}s`;
 export const SKIP_OPTIONS = [0, 1, 2, -1] as const;
 export const MYSTERY_OPTIONS = [0, 10, 20, 30, 50] as const;
 export const LUCKY_OPTIONS = [0, 5, 10, 20] as const;

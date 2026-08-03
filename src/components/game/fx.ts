@@ -171,6 +171,120 @@ export function vibrate(pattern: number | number[], enabled = true) {
 /* Ambient background music: a soft looping arpeggio (no asset downloads). */
 let musicNodes: { osc: OscillatorNode; gain: GainNode; timer: number } | null = null;
 
+/* ------------- extra atmosphere: crowd, heartbeat, suspense ------------- */
+
+/** Noise-based crowd cheer. */
+export function crowdCheer(enabled = true) {
+  const ac = getCtx();
+  if (!ac || !enabled) return;
+  if (ac.state === "suspended") void ac.resume();
+  const dur = 1.6;
+  const buffer = ac.createBuffer(1, ac.sampleRate * dur, ac.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < data.length; i++) {
+    const t = i / data.length;
+    data[i] = (Math.random() * 2 - 1) * Math.sin(Math.PI * t) * 0.6;
+  }
+  const src = ac.createBufferSource();
+  src.buffer = buffer;
+  const filter = ac.createBiquadFilter();
+  filter.type = "bandpass";
+  filter.frequency.value = 1100;
+  filter.Q.value = 0.7;
+  const gain = ac.createGain();
+  gain.gain.value = 0.18;
+  src.connect(filter).connect(gain).connect(ac.destination);
+  src.start();
+}
+
+/** Two-thump heartbeat used for the Truth Teller reveal. */
+export function heartbeat(enabled = true, beats = 3) {
+  const ac = getCtx();
+  if (!ac || !enabled) return;
+  if (ac.state === "suspended") void ac.resume();
+  for (let b = 0; b < beats; b++) {
+    [0, 0.22].forEach((offset, k) => {
+      const t = ac.currentTime + b * 0.8 + offset;
+      const osc = ac.createOscillator();
+      const gain = ac.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(k === 0 ? 78 : 62, t);
+      gain.gain.setValueAtTime(0.0001, t);
+      gain.gain.exponentialRampToValueAtTime(0.3, t + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.28);
+      osc.connect(gain).connect(ac.destination);
+      osc.start(t);
+      osc.stop(t + 0.32);
+    });
+  }
+}
+
+/** Rising suspense drone while the roulette spins. */
+let suspenseNodes: { osc: OscillatorNode; gain: GainNode } | null = null;
+export function suspense(on: boolean) {
+  const ac = getCtx();
+  if (!ac) return;
+  if (!on) {
+    if (suspenseNodes) {
+      suspenseNodes.gain.gain.setTargetAtTime(0, ac.currentTime, 0.15);
+      suspenseNodes.osc.stop(ac.currentTime + 0.8);
+      suspenseNodes = null;
+    }
+    return;
+  }
+  if (suspenseNodes) return;
+  if (ac.state === "suspended") void ac.resume();
+  const osc = ac.createOscillator();
+  const gain = ac.createGain();
+  osc.type = "sawtooth";
+  osc.frequency.setValueAtTime(90, ac.currentTime);
+  osc.frequency.linearRampToValueAtTime(340, ac.currentTime + 4.6);
+  gain.gain.value = 0.05;
+  osc.connect(gain).connect(ac.destination);
+  osc.start();
+  suspenseNodes = { osc, gain };
+}
+
+/* Music moods per game state: lobby, spin, truth, dare, victory. */
+export type MusicMood = "off" | "lobby" | "spin" | "truth" | "dare" | "victory";
+
+const MOODS: Record<Exclude<MusicMood, "off">, { notes: number[]; step: number; type: OscillatorType; vol: number }> = {
+  lobby: { notes: [220, 277, 330, 415, 330, 277], step: 700, type: "sine", vol: 0.03 },
+  spin: { notes: [180, 190, 200, 215, 230, 250], step: 260, type: "triangle", vol: 0.035 },
+  truth: { notes: [262, 330, 392, 330], step: 900, type: "sine", vol: 0.025 },
+  dare: { notes: [110, 146, 110, 175, 131, 196], step: 340, type: "sawtooth", vol: 0.03 },
+  victory: { notes: [523, 659, 784, 1047, 784, 659], step: 240, type: "square", vol: 0.03 },
+};
+
+let moodNodes: { osc: OscillatorNode; gain: GainNode; timer: number; mood: MusicMood } | null = null;
+
+export function setMusicMood(mood: MusicMood) {
+  const ac = getCtx();
+  if (!ac) return;
+  if (moodNodes?.mood === mood) return;
+  if (moodNodes) {
+    clearInterval(moodNodes.timer);
+    moodNodes.gain.gain.setTargetAtTime(0, ac.currentTime, 0.25);
+    moodNodes.osc.stop(ac.currentTime + 1.2);
+    moodNodes = null;
+  }
+  if (mood === "off") return;
+  if (ac.state === "suspended") void ac.resume();
+  const spec = MOODS[mood];
+  const osc = ac.createOscillator();
+  const gain = ac.createGain();
+  osc.type = spec.type;
+  gain.gain.value = spec.vol;
+  osc.connect(gain).connect(ac.destination);
+  osc.start();
+  let i = 0;
+  const timer = window.setInterval(() => {
+    osc.frequency.setTargetAtTime(spec.notes[i % spec.notes.length]!, ac.currentTime, 0.08);
+    i++;
+  }, spec.step);
+  moodNodes = { osc, gain, timer, mood };
+}
+
 export function toggleMusic(on: boolean) {
   const ac = getCtx();
   if (!ac) return;
