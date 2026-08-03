@@ -10,7 +10,6 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AuthRouteImport } from './routes/auth'
 import { Route as LobbyRouteImport } from './routes/lobby'
 import { Route as PlayRouteImport } from './routes/play'
 import { Route as PlayersRouteImport } from './routes/players'
@@ -21,11 +20,6 @@ import { Route as PartyCodeRouteImport } from './routes/party.$code'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthRoute = AuthRouteImport.update({
-  id: '/auth',
-  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LobbyRoute = LobbyRouteImport.update({
@@ -61,7 +55,6 @@ const PartyCodeRoute = PartyCodeRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/auth': typeof AuthRoute
   '/lobby': typeof LobbyRoute
   '/play': typeof PlayRoute
   '/players': typeof PlayersRoute
@@ -71,7 +64,6 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/auth': typeof AuthRoute
   '/lobby': typeof LobbyRoute
   '/play': typeof PlayRoute
   '/players': typeof PlayersRoute
@@ -82,7 +74,6 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/auth': typeof AuthRoute
   '/lobby': typeof LobbyRoute
   '/play': typeof PlayRoute
   '/players': typeof PlayersRoute
@@ -94,7 +85,6 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/auth'
     | '/lobby'
     | '/play'
     | '/players'
@@ -104,7 +94,6 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/auth'
     | '/lobby'
     | '/play'
     | '/players'
@@ -114,7 +103,6 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
-    | '/auth'
     | '/lobby'
     | '/play'
     | '/players'
@@ -125,7 +113,6 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AuthRoute: typeof AuthRoute
   LobbyRoute: typeof LobbyRoute
   PlayRoute: typeof PlayRoute
   PlayersRoute: typeof PlayersRoute
@@ -141,13 +128,6 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth': {
-      id: '/auth'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/lobby': {
@@ -197,7 +177,6 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AuthRoute: AuthRoute,
   LobbyRoute: LobbyRoute,
   PlayRoute: PlayRoute,
   PlayersRoute: PlayersRoute,

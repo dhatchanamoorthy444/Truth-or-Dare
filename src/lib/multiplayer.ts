@@ -30,25 +30,37 @@ export const GAME_MODES = [
 ] as const;
 export type GameMode = (typeof GAME_MODES)[number]["id"];
 
-const CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-const NAME_PARTS = ["Neon", "Turbo", "Wild", "Lucky", "Rogue", "Cosmic", "Shadow", "Blaze"];
-const NAME_TAILS = ["Fox", "Wolf", "Panda", "Comet", "Ghost", "Tiger", "Nova", "Raven"];
+const CODE_WORDS = [
+  "MAGIC", "FUN", "PARTY", "ROOM", "TRUTH", "DARE", "CHAOS", "SPIN",
+  "LUCKY", "NEON", "TACO", "PANDA", "GOAT", "BOOM", "VIBE", "ZEBRA",
+];
+const NAME_PARTS = [
+  "Crazy", "Lazy", "Angry", "Sleepy", "Magic", "Spicy", "Captain", "Sneaky",
+  "Turbo", "Wild", "Lucky", "Cosmic", "Grumpy", "Dizzy", "Silly", "Mega",
+];
+const NAME_TAILS = [
+  "Panda", "Potato", "Banana", "Penguin", "Dragon", "Taco", "Fox", "Noodle",
+  "Wolf", "Comet", "Ghost", "Tiger", "Waffle", "Raven", "Pickle", "Muffin",
+];
 const AVATARS = ["🦊", "🐼", "🦄", "🐯", "🐨", "🐸", "🦁", "🐧", "🐺", "🦉", "🐙", "🐝"];
 const FLAGS = ["🌍", "🇺🇸", "🇬🇧", "🇮🇳", "🇧🇷", "🇩🇪", "🇯🇵", "🇳🇬", "🇫🇷", "🇪🇸", "🇦🇺", "🇨🇦"];
 
+/** Room codes look like MAGIC7 / FUN123 / PARTY9 — short, sayable, unique enough. */
 export function randomPartyCode() {
-  let out = "";
-  for (let i = 0; i < 6; i++) {
-    out += CODE_ALPHABET[Math.floor(Math.random() * CODE_ALPHABET.length)];
-  }
-  return out;
+  const word = CODE_WORDS[Math.floor(Math.random() * CODE_WORDS.length)]!;
+  const digits = 6 - word.length;
+  let tail = "";
+  for (let i = 0; i < Math.max(1, digits); i++) tail += Math.floor(Math.random() * 10);
+  return (word + tail).slice(0, 6);
 }
 
-function randomName() {
+export function randomName() {
   const a = NAME_PARTS[Math.floor(Math.random() * NAME_PARTS.length)];
   const b = NAME_TAILS[Math.floor(Math.random() * NAME_TAILS.length)];
-  return `${a}${b}${Math.floor(10 + Math.random() * 90)}`;
+  return `${a} ${b}`;
 }
+
+export const randomPlayerCode = () => `TD-${Math.floor(100000 + Math.random() * 900000)}`;
 
 const pick = <T,>(list: readonly T[]) => list[Math.floor(Math.random() * list.length)]!;
 
@@ -73,21 +85,33 @@ export async function profilesFor(ids: string[]): Promise<Record<string, Profile
   return Object.fromEntries((data ?? []).map((p) => [p.id, p]));
 }
 
-/** Current signed-in user (null while loading is reported separately). */
+/**
+ * Guest identity. There is no login: on first visit we silently create an
+ * anonymous session so every player still gets a stable id for realtime + RLS.
+ */
 export function useAuthUser() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let alive = true;
-    supabase.auth.getSession().then(({ data }) => {
+    supabase.auth.getSession().then(async ({ data }) => {
       if (!alive) return;
-      setUser(data.session?.user ?? null);
+      if (data.session?.user) {
+        setUser(data.session.user);
+        setLoading(false);
+        return;
+      }
+      const { data: guest } = await supabase.auth.signInAnonymously();
+      if (!alive) return;
+      setUser(guest.session?.user ?? null);
       setLoading(false);
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
+      if (session?.user) {
+        setUser(session.user);
+        setLoading(false);
+      }
     });
     return () => {
       alive = false;
@@ -121,7 +145,7 @@ export function useProfile() {
       username:
         (user.user_metadata?.["full_name"] as string | undefined)?.slice(0, 20) ?? randomName(),
       avatar: pick(AVATARS),
-      player_code: `TD-${Math.floor(100000 + Math.random() * 900000)}`,
+      player_code: randomPlayerCode(),
       country: pick(FLAGS),
     };
     const { data: inserted } = await supabase
@@ -382,4 +406,23 @@ export async function sendMessage(partyId: string, userId: string, body: string,
     body: trimmed,
     kind,
   });
+}
+export const AVATAR_CHOICES = ["🦊", "🐼", "🦄", "🐯", "🐨", "🐸", "🦁", "🐧", "🐺", "🦉", "🐙", "🐝"];
+
+/** Nickname / avatar changes for the guest player. */
+export async function updateGuestProfile(
+  userId: string,
+  patch: { username?: string; avatar?: string },
+) {
+  const clean: Record<string, string> = {};
+  if (patch.username) clean["username"] = patch.username.trim().slice(0, 20) || randomName();
+  if (patch.avatar) clean["avatar"] = patch.avatar;
+  if (!Object.keys(clean).length) return null;
+  const { data } = await supabase
+    .from("profiles")
+    .update({ ...clean, updated_at: new Date().toISOString() })
+    .eq("id", userId)
+    .select("*")
+    .maybeSingle();
+  return data;
 }
