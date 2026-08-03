@@ -722,7 +722,7 @@ function PartyPage() {
                   🕵️ You are the Secret Imposter
                 </h2>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Pick tonight's victim — or let the wheel decide.
+                  Pick tonight's victim — or let the roulette decide.
                 </p>
                 <div className="mt-5 grid gap-2 sm:grid-cols-2">
                   {players.map((p) => (
@@ -740,26 +740,8 @@ function PartyPage() {
                   onClick={() => setShowWheel(true)}
                   className="press-3d neon-glow mt-3 w-full rounded-2xl bg-primary py-3 text-xs font-black uppercase tracking-widest text-primary-foreground"
                 >
-                  🎡 Spin the wheel of victims
+                  🎡 Open Regret Roulette
                 </button>
-                {showWheel && (
-                  <div className="mt-6">
-                    <SpinWheel
-                      players={players.map((p) => ({
-                        id: p.user_id,
-                        name: p.profile?.username ?? "Player",
-                        emoji: p.profile?.avatar ?? "🎲",
-                        score: p.score,
-                        truths: p.truths,
-                        dares: p.dares,
-                        skips: 0,
-                      }))}
-                      onPick={(p) => void chooseVictim(p.id)}
-                      sound
-                      haptics
-                    />
-                  </div>
-                )}
               </>
             ) : (
               <>
@@ -769,33 +751,36 @@ function PartyPage() {
                 </p>
               </>
             )}
+            {/* Everyone watches the same roulette, whoever triggered it. */}
+            {(showWheel || spin) && (
+              <div className="mt-6">
+                <RegretRoulette
+                  players={wheelPlayers}
+                  spin={spin}
+                  canSpin={imposterIsMe}
+                  onSpin={() => void startSpin()}
+                  onSettled={spinController ? (id) => void chooseVictim(id) : undefined}
+                />
+              </div>
+            )}
           </section>
         )}
 
         {party.status === "playing" && phase === "victim" && (
           <section className="text-center">
-            <h2 className="font-display text-2xl font-black">🎡 Wheel of Victims</h2>
+            <h2 className="font-display text-2xl font-black gradient-text">🎡 Regret Roulette</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              {isHost ? "Spin to reveal who's up." : "The host is spinning the wheel…"}
+              {isHost ? "Spin to reveal the Truth Teller." : "The host is spinning — watch together…"}
             </p>
-            {isHost && (
-              <div className="mt-6">
-                <SpinWheel
-                  players={players.map((p) => ({
-                    id: p.user_id,
-                    name: p.profile?.username ?? "Player",
-                    emoji: p.profile?.avatar ?? "🎲",
-                    score: p.score,
-                    truths: p.truths,
-                    dares: p.dares,
-                    skips: 0,
-                  }))}
-                  onPick={(p) => void chooseVictim(p.id)}
-                  sound
-                  haptics
-                />
-              </div>
-            )}
+            <div className="mt-6">
+              <RegretRoulette
+                players={wheelPlayers}
+                spin={spin}
+                canSpin={isHost}
+                onSpin={() => void startSpin()}
+                onSettled={spinController ? (id) => void chooseVictim(id) : undefined}
+              />
+            </div>
           </section>
         )}
 
