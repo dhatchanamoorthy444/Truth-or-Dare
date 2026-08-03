@@ -47,18 +47,22 @@ function AuthPage() {
       return;
     }
     setBusy(true);
-    const fn =
+    const { data, error } =
       mode === "signup"
-        ? supabase.auth.signUp({
+        ? await supabase.auth.signUp({
             email,
             password,
             options: { emailRedirectTo: `${window.location.origin}/lobby` },
           })
-        : supabase.auth.signInWithPassword({ email, password });
-    const { error } = await fn;
+        : await supabase.auth.signInWithPassword({ email, password });
     setBusy(false);
     if (error) {
       toast.error(error.message);
+      return;
+    }
+    if (mode === "signup" && !data.session) {
+      toast.success("Check your inbox to confirm your email, then sign in.");
+      setMode("signin");
       return;
     }
     toast.success(mode === "signup" ? "Account created — you're in!" : "Welcome back!");
