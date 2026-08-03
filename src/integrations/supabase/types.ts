@@ -14,13 +14,253 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      parties: {
+        Row: {
+          blue_score: number
+          code: string
+          created_at: string
+          current_challenge: Json | null
+          current_turn: string | null
+          host_id: string
+          id: string
+          max_players: number
+          mode: string
+          name: string
+          red_score: number
+          round: number
+          status: string
+          team_mode: boolean
+          theme: string
+          turn_ends_at: string | null
+          updated_at: string
+          visibility: string
+        }
+        Insert: {
+          blue_score?: number
+          code: string
+          created_at?: string
+          current_challenge?: Json | null
+          current_turn?: string | null
+          host_id: string
+          id?: string
+          max_players?: number
+          mode?: string
+          name?: string
+          red_score?: number
+          round?: number
+          status?: string
+          team_mode?: boolean
+          theme?: string
+          turn_ends_at?: string | null
+          updated_at?: string
+          visibility?: string
+        }
+        Update: {
+          blue_score?: number
+          code?: string
+          created_at?: string
+          current_challenge?: Json | null
+          current_turn?: string | null
+          host_id?: string
+          id?: string
+          max_players?: number
+          mode?: string
+          name?: string
+          red_score?: number
+          round?: number
+          status?: string
+          team_mode?: boolean
+          theme?: string
+          turn_ends_at?: string | null
+          updated_at?: string
+          visibility?: string
+        }
+        Relationships: []
+      }
+      party_bans: {
+        Row: {
+          created_at: string
+          id: string
+          party_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          party_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          party_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "party_bans_party_id_fkey"
+            columns: ["party_id"]
+            isOneToOne: false
+            referencedRelation: "parties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      party_members: {
+        Row: {
+          dares: number
+          id: string
+          joined_at: string
+          party_id: string
+          ready: boolean
+          score: number
+          spectator: boolean
+          team: string
+          truths: number
+          user_id: string
+        }
+        Insert: {
+          dares?: number
+          id?: string
+          joined_at?: string
+          party_id: string
+          ready?: boolean
+          score?: number
+          spectator?: boolean
+          team?: string
+          truths?: number
+          user_id: string
+        }
+        Update: {
+          dares?: number
+          id?: string
+          joined_at?: string
+          party_id?: string
+          ready?: boolean
+          score?: number
+          spectator?: boolean
+          team?: string
+          truths?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "party_members_party_id_fkey"
+            columns: ["party_id"]
+            isOneToOne: false
+            referencedRelation: "parties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      party_messages: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          kind: string
+          party_id: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          kind?: string
+          party_id: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          kind?: string
+          party_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "party_messages_party_id_fkey"
+            columns: ["party_id"]
+            isOneToOne: false
+            referencedRelation: "parties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar: string
+          badges: string[]
+          coins: number
+          country: string
+          created_at: string
+          frame: string
+          id: string
+          level: number
+          losses: number
+          name_color: string
+          player_code: string
+          rank_points: number
+          title: string
+          updated_at: string
+          username: string
+          wins: number
+          xp: number
+        }
+        Insert: {
+          avatar?: string
+          badges?: string[]
+          coins?: number
+          country?: string
+          created_at?: string
+          frame?: string
+          id: string
+          level?: number
+          losses?: number
+          name_color?: string
+          player_code: string
+          rank_points?: number
+          title?: string
+          updated_at?: string
+          username: string
+          wins?: number
+          xp?: number
+        }
+        Update: {
+          avatar?: string
+          badges?: string[]
+          coins?: number
+          country?: string
+          created_at?: string
+          frame?: string
+          id?: string
+          level?: number
+          losses?: number
+          name_color?: string
+          player_code?: string
+          rank_points?: number
+          title?: string
+          updated_at?: string
+          username?: string
+          wins?: number
+          xp?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_party_host: {
+        Args: { _party: string; _user: string }
+        Returns: boolean
+      }
+      is_party_member: {
+        Args: { _party: string; _user: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
