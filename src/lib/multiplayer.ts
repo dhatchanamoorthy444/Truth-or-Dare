@@ -65,6 +65,14 @@ export const RANKS = [
 export const rankFor = (points: number) =>
   [...RANKS].reverse().find((r) => points >= r.min) ?? RANKS[0]!;
 
+/** Batch-load profiles for a set of user ids (no FK join exists). */
+export async function profilesFor(ids: string[]): Promise<Record<string, Profile>> {
+  const unique = [...new Set(ids)];
+  if (!unique.length) return {};
+  const { data } = await supabase.from("profiles").select("*").in("id", unique);
+  return Object.fromEntries((data ?? []).map((p) => [p.id, p]));
+}
+
 /** Current signed-in user (null while loading is reported separately). */
 export function useAuthUser() {
   const [user, setUser] = useState<User | null>(null);
