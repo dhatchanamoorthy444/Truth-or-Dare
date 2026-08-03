@@ -20,8 +20,8 @@ export type CinematicKind =
 export interface CinematicEvent {
   id: number;
   kind: CinematicKind;
-  text?: string;
-  emoji?: string;
+  text?: string | undefined;
+  emoji?: string | undefined;
 }
 
 /** Silly text-to-speech announcer — silently no-ops where unsupported. */
