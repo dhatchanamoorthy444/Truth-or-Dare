@@ -107,8 +107,10 @@ function PartyPage() {
   const [showWheel, setShowWheel] = useState(false);
   const [voted, setVoted] = useState(false);
   const [showMission, setShowMission] = useState(false);
+  const [reveal, setReveal] = useState<MemberWithProfile | null>(null);
   const { event: cine, play } = useCinematic();
   const chatEnd = useRef<HTMLDivElement>(null);
+  const revealedFor = useRef<string | null>(null);
 
   useEffect(() => {
     const t = window.setInterval(() => setNow(Date.now()), 500);
@@ -133,10 +135,69 @@ function PartyPage() {
   const mystery = (party?.mystery ?? null) as MysteryOutcome | null;
   const recap = (party?.recap ?? null) as Recap | null;
   const imposterIsMe = !!profile && party?.imposter_id === profile.id;
+  const spin = (party?.spin ?? null) as SpinPayload | null;
+  const verdicts = (party?.verdicts ?? {}) as Record<string, boolean>;
+  const wheelPlayers = useMemo(
+    () =>
+      players.map((p) => ({
+        id: p.user_id,
+        name: p.profile?.username ?? "Player",
+        emoji: p.profile?.avatar ?? "🎲",
+      })),
+    [players],
+  );
+  /** Only one client is allowed to commit a spin result — no duplicate wheels. */
+  const spinController = phase === "imposter" ? imposterIsMe : isHost;
   const secondsLeft =
     party?.turn_ends_at && settings.turnSeconds > 0
       ? Math.max(0, Math.ceil((new Date(party.turn_ends_at).getTime() - now) / 1000))
       : null;
+
+  /* ---------- room atmosphere: music follows the game state ---------- */
+  useEffect(() => {
+    if (party?.status === "results") setMusicMood("victory");
+    else if (party?.status !== "playing") setMusicMood("lobby");
+    else if (phase === "imposter" || phase === "victim") setMusicMood("spin");
+    else if (challenge?.type === "dare") setMusicMood("dare");
+    else if (challenge?.type === "truth") setMusicMood("truth");
+    else setMusicMood("lobby");
+    return () => setMusicMood("off");
+  }, [party?.status, phase, challenge?.type]);
+
+  /* ---------- reconnect: silently restore membership ---------- */
+  useEffect(() => {
+    if (!party || !profile || loading) return;
+    if (members.some((m) => m.user_id === profile.id)) return;
+    void ensureMembership(party.code, profile.id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [party?.id, profile?.id, members.length, loading]);
+
+  /* ---------- host heartbeat + automatic host migration ---------- */
+  useEffect(() => {
+    if (!party || !profile) return;
+    const t = window.setInterval(() => {
+      if (isHost) {
+        void touchHost(party.id);
+        return;
+      }
+      void claimHostIfAbandoned(party, members, online, profile.id).then((claimed) => {
+        if (claimed) toast.success("The host left — you're the new host 👑");
+      });
+    }, 8000);
+    return () => window.clearInterval(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [party?.id, isHost, members, online, profile?.id]);
+
+  /* ---------- 🎭 The Truth Teller reveal, seen by everyone ---------- */
+  useEffect(() => {
+    if (phase !== "challenge" || !party?.victim_id) return;
+    const key = `${party.round}:${party.victim_id}`;
+    if (revealedFor.current === key) return;
+    revealedFor.current = key;
+    const victim = players.find((p) => p.user_id === party.victim_id) ?? null;
+    if (victim) setReveal(victim);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, party?.victim_id, party?.round, players.length]);
 
   /* ---------- cinematic round countdown, driven by the host ---------- */
   useEffect(() => {
@@ -194,6 +255,23 @@ function PartyPage() {
 
   const saveSettings = async (patch: Partial<GameSettings>) => {
     await patchParty({ settings: { ...settings, ...patch } });
+  };
+
+  /**
+   * Shared spin: the controller picks the index, everyone animates the same
+   * wheel. The previous victim is excluded so nobody gets picked twice in a row.
+   */
+  const startSpin = async () => {
+    if (!party || !spinController || players.length < 2) return;
+    const eligible = players.filter(
+      (p) => players.length < 3 || p.user_id !== party.victim_id,
+    );
+    const chosen = pickRandom(eligible);
+    if (!chosen) return;
+    const index = players.findIndex((p) => p.user_id === chosen.user_id);
+    await patchParty({
+      spin: { index, at: Date.now(), by: profile?.id ?? "", ids: players.map((p) => p.user_id) },
+    });
   };
 
   /** Kicks off the suspenseful countdown before a brand-new round. */
@@ -267,6 +345,8 @@ function PartyPage() {
   /** Locks in the victim for this round, rolling a lucky save first. */
   const chooseVictim = async (userId: string) => {
     if (!party) return;
+    // Anti-cheat: the victim for a round can only ever be committed once.
+    if (party.victim_id && party.phase === "challenge") return;
     let target = players.find((p) => p.user_id === userId) ?? null;
     if (target && rollLuckySave(settings.luckyChance)) {
       const others = players.filter((p) => p.user_id !== userId);
@@ -290,6 +370,8 @@ function PartyPage() {
       victim_id: target.user_id,
       current_turn: target.user_id,
       transfer_used: false,
+      verdicts: {},
+      spin: null,
     });
   };
 
