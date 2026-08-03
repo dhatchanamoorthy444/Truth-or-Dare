@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { Flame, Gift, Sparkles, Zap } from "lucide-react";
 import { Shell } from "@/components/game/Shell";
 import { useGame } from "@/lib/game-store";
