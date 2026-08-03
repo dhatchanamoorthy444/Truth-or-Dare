@@ -312,6 +312,8 @@ export async function createParty(opts: {
   theme: ThemeId;
   visibility: "public" | "private";
   maxPlayers: number;
+  preset?: string;
+  settings?: Record<string, unknown>;
 }) {
   for (let attempt = 0; attempt < 6; attempt++) {
     const code = randomPartyCode();
@@ -326,6 +328,8 @@ export async function createParty(opts: {
         visibility: opts.visibility,
         max_players: Math.min(20, Math.max(2, opts.maxPlayers)),
         team_mode: opts.mode === "team",
+        preset: opts.preset ?? "casual",
+        settings: (opts.settings ?? {}) as never,
       })
       .select("*")
       .maybeSingle();

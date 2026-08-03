@@ -23,16 +23,25 @@ export type Database = {
           current_turn: string | null
           host_id: string
           id: string
+          imposter_id: string | null
           max_players: number
           mode: string
+          mystery: Json | null
           name: string
+          phase: string
+          preset: string
+          recap: Json | null
           red_score: number
           round: number
+          settings: Json
           status: string
           team_mode: boolean
           theme: string
+          transfer_used: boolean
           turn_ends_at: string | null
           updated_at: string
+          used_ids: string[]
+          victim_id: string | null
           visibility: string
         }
         Insert: {
@@ -43,16 +52,25 @@ export type Database = {
           current_turn?: string | null
           host_id: string
           id?: string
+          imposter_id?: string | null
           max_players?: number
           mode?: string
+          mystery?: Json | null
           name?: string
+          phase?: string
+          preset?: string
+          recap?: Json | null
           red_score?: number
           round?: number
+          settings?: Json
           status?: string
           team_mode?: boolean
           theme?: string
+          transfer_used?: boolean
           turn_ends_at?: string | null
           updated_at?: string
+          used_ids?: string[]
+          victim_id?: string | null
           visibility?: string
         }
         Update: {
@@ -63,16 +81,25 @@ export type Database = {
           current_turn?: string | null
           host_id?: string
           id?: string
+          imposter_id?: string | null
           max_players?: number
           mode?: string
+          mystery?: Json | null
           name?: string
+          phase?: string
+          preset?: string
+          recap?: Json | null
           red_score?: number
           round?: number
+          settings?: Json
           status?: string
           team_mode?: boolean
           theme?: string
+          transfer_used?: boolean
           turn_ends_at?: string | null
           updated_at?: string
+          used_ids?: string[]
+          victim_id?: string | null
           visibility?: string
         }
         Relationships: []
@@ -111,37 +138,49 @@ export type Database = {
           dares: number
           id: string
           joined_at: string
+          mission: string | null
+          mission_done: boolean
           party_id: string
           ready: boolean
           score: number
+          skips_left: number
           spectator: boolean
           team: string
           truths: number
           user_id: string
+          votes: number
         }
         Insert: {
           dares?: number
           id?: string
           joined_at?: string
+          mission?: string | null
+          mission_done?: boolean
           party_id: string
           ready?: boolean
           score?: number
+          skips_left?: number
           spectator?: boolean
           team?: string
           truths?: number
           user_id: string
+          votes?: number
         }
         Update: {
           dares?: number
           id?: string
           joined_at?: string
+          mission?: string | null
+          mission_done?: boolean
           party_id?: string
           ready?: boolean
           score?: number
+          skips_left?: number
           spectator?: boolean
           team?: string
           truths?: number
           user_id?: string
+          votes?: number
         }
         Relationships: [
           {
@@ -271,16 +310,25 @@ export type Database = {
           current_turn: string | null
           host_id: string
           id: string
+          imposter_id: string | null
           max_players: number
           mode: string
+          mystery: Json | null
           name: string
+          phase: string
+          preset: string
+          recap: Json | null
           red_score: number
           round: number
+          settings: Json
           status: string
           team_mode: boolean
           theme: string
+          transfer_used: boolean
           turn_ends_at: string | null
           updated_at: string
+          used_ids: string[]
+          victim_id: string | null
           visibility: string
         }
         SetofOptions: {

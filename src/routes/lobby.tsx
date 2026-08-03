@@ -1,6 +1,12 @@
 /** Party browser: quick match, create a party, join by code, public list. */
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { HostSettings } from "@/components/game/HostSettings";
+import {
+  DEFAULT_SETTINGS,
+  PRESETS,
+  type GameSettings,
+} from "@/lib/round-engine";
 import { toast } from "sonner";
 import { Globe, Lock, Users, Zap } from "lucide-react";
 import { Shell } from "@/components/game/Shell";
@@ -55,6 +61,10 @@ function LobbyPage() {
   const [maxPlayers, setMaxPlayers] = useState(8);
   const [nick, setNick] = useState("");
   const [busy, setBusy] = useState(false);
+  const [presetId, setPresetId] = useState("casual");
+  const [scenarios, setScenarios] = useState<string[]>(["funny", "friendship"]);
+  const [settings, setSettings] = useState<GameSettings>(DEFAULT_SETTINGS);
+  const [advanced, setAdvanced] = useState(false);
 
   useEffect(() => {
     if (profile) setNick(profile.username);
@@ -288,6 +298,53 @@ function LobbyPage() {
             ))}
           </div>
         </div>
+        <div>
+          <p className="mb-2 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+            Game preset
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {PRESETS.map((p) => (
+              <button
+                key={p.id}
+                onClick={() => {
+                  setPresetId(p.id);
+                  setSettings((s) => ({
+                    ...s,
+                    categories: p.categories,
+                    difficulty: p.difficulty,
+                  }));
+                  setTheme(p.theme);
+                }}
+                title={p.vibe}
+                className={`press-3d rounded-xl px-3 py-2 text-[11px] font-bold transition ${
+                  presetId === p.id
+                    ? "bg-primary text-primary-foreground neon-glow"
+                    : "bg-secondary/60 text-muted-foreground"
+                }`}
+              >
+                {p.emoji} {p.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <button
+          onClick={() => setAdvanced((a) => !a)}
+          className="press-3d w-full rounded-2xl bg-secondary/60 py-3 text-[11px] font-black uppercase tracking-widest text-muted-foreground"
+        >
+          {advanced ? "Hide" : "Show"} host game settings
+        </button>
+        {advanced && (
+          <div className="glass rounded-3xl p-4">
+            <HostSettings
+              settings={settings}
+              scenarios={scenarios}
+              onScenarios={setScenarios}
+              onChange={(patch) => setSettings((s) => ({ ...s, ...patch }))}
+            />
+          </div>
+        )}
+
         <button
           disabled={busy}
           onClick={() =>
@@ -299,6 +356,8 @@ function LobbyPage() {
                 theme,
                 visibility,
                 maxPlayers: mode === "couples" ? 2 : maxPlayers,
+                preset: presetId,
+                settings: settings as unknown as Record<string, unknown>,
               });
               await go(p.code);
             })
