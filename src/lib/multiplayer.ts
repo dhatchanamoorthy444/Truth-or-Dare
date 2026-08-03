@@ -31,16 +31,58 @@ export const GAME_MODES = [
 export type GameMode = (typeof GAME_MODES)[number]["id"];
 
 const CODE_WORDS = [
-  "MAGIC", "FUN", "PARTY", "ROOM", "TRUTH", "DARE", "CHAOS", "SPIN",
-  "LUCKY", "NEON", "TACO", "PANDA", "GOAT", "BOOM", "VIBE", "ZEBRA",
+  "MAGIC",
+  "FUN",
+  "PARTY",
+  "ROOM",
+  "TRUTH",
+  "DARE",
+  "CHAOS",
+  "SPIN",
+  "LUCKY",
+  "NEON",
+  "TACO",
+  "PANDA",
+  "GOAT",
+  "BOOM",
+  "VIBE",
+  "ZEBRA",
 ];
 const NAME_PARTS = [
-  "Crazy", "Lazy", "Angry", "Sleepy", "Magic", "Spicy", "Captain", "Sneaky",
-  "Turbo", "Wild", "Lucky", "Cosmic", "Grumpy", "Dizzy", "Silly", "Mega",
+  "Crazy",
+  "Lazy",
+  "Angry",
+  "Sleepy",
+  "Magic",
+  "Spicy",
+  "Captain",
+  "Sneaky",
+  "Turbo",
+  "Wild",
+  "Lucky",
+  "Cosmic",
+  "Grumpy",
+  "Dizzy",
+  "Silly",
+  "Mega",
 ];
 const NAME_TAILS = [
-  "Panda", "Potato", "Banana", "Penguin", "Dragon", "Taco", "Fox", "Noodle",
-  "Wolf", "Comet", "Ghost", "Tiger", "Waffle", "Raven", "Pickle", "Muffin",
+  "Panda",
+  "Potato",
+  "Banana",
+  "Penguin",
+  "Dragon",
+  "Taco",
+  "Fox",
+  "Noodle",
+  "Wolf",
+  "Comet",
+  "Ghost",
+  "Tiger",
+  "Waffle",
+  "Raven",
+  "Pickle",
+  "Muffin",
 ];
 const AVATARS = ["🦊", "🐼", "🦄", "🐯", "🐨", "🐸", "🦁", "🐧", "🐺", "🦉", "🐙", "🐝"];
 const FLAGS = ["🌍", "🇺🇸", "🇬🇧", "🇮🇳", "🇧🇷", "🇩🇪", "🇯🇵", "🇳🇬", "🇫🇷", "🇪🇸", "🇦🇺", "🇨🇦"];
@@ -62,7 +104,7 @@ export function randomName() {
 
 export const randomPlayerCode = () => `TD-${Math.floor(100000 + Math.random() * 900000)}`;
 
-const pick = <T,>(list: readonly T[]) => list[Math.floor(Math.random() * list.length)]!;
+const pick = <T>(list: readonly T[]) => list[Math.floor(Math.random() * list.length)]!;
 
 export const levelFromXp = (xp: number) => Math.max(1, Math.floor(xp / 300) + 1);
 
@@ -252,7 +294,12 @@ export function useParty(code: string, userId: string | undefined) {
       )
       .on(
         "postgres_changes",
-        { event: "INSERT", schema: "public", table: "party_messages", filter: `party_id=eq.${partyId}` },
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "party_messages",
+          filter: `party_id=eq.${partyId}`,
+        },
         () => void loadMessages(partyId),
       )
       .on("presence", { event: "sync" }, () => {
@@ -284,10 +331,7 @@ export function useParty(code: string, userId: string | undefined) {
     });
   }, [partyId, userId]);
 
-  const me = useMemo(
-    () => members.find((m) => m.user_id === userId) ?? null,
-    [members, userId],
-  );
+  const me = useMemo(() => members.find((m) => m.user_id === userId) ?? null, [members, userId]);
 
   return {
     party,
@@ -389,7 +433,12 @@ export async function quickMatch(userId: string, theme: ThemeId) {
   });
 }
 
-export async function leaveParty(partyId: string, userId: string, isHost: boolean, members: PartyMember[]) {
+export async function leaveParty(
+  partyId: string,
+  userId: string,
+  isHost: boolean,
+  members: PartyMember[],
+) {
   if (isHost) {
     const heir = members.find((m) => m.user_id !== userId && !m.spectator);
     if (heir) await supabase.from("parties").update({ host_id: heir.user_id }).eq("id", partyId);
@@ -430,12 +479,20 @@ export async function reactToMessage(
   const next = { ...current };
   next[emoji] = list.includes(userId) ? list.filter((u) => u !== userId) : [...list, userId];
   if (!next[emoji]!.length) delete next[emoji];
-  await supabase.from("party_messages").update({ reactions: next as never }).eq("id", messageId);
+  await supabase
+    .from("party_messages")
+    .update({ reactions: next as never })
+    .eq("id", messageId);
 }
 
 /** Host-only: pin (or unpin) a message to the top of the room. */
 export async function pinMessage(partyId: string, messageId: string, pinned: boolean) {
-  if (pinned) await supabase.from("party_messages").update({ pinned: false }).eq("party_id", partyId).eq("pinned", true);
+  if (pinned)
+    await supabase
+      .from("party_messages")
+      .update({ pinned: false })
+      .eq("party_id", partyId)
+      .eq("pinned", true);
   await supabase.from("party_messages").update({ pinned }).eq("id", messageId);
 }
 
@@ -468,7 +525,10 @@ export async function claimHostIfAbandoned(
 
 /** Heartbeat so other clients can tell a host is genuinely still around. */
 export async function touchHost(partyId: string) {
-  await supabase.from("parties").update({ host_seen_at: new Date().toISOString() }).eq("id", partyId);
+  await supabase
+    .from("parties")
+    .update({ host_seen_at: new Date().toISOString() })
+    .eq("id", partyId);
 }
 
 /** Reconnect / duplicate-join safe membership restore. */
@@ -479,7 +539,20 @@ export async function ensureMembership(code: string, userId: string) {
     return null;
   }
 }
-export const AVATAR_CHOICES = ["🦊", "🐼", "🦄", "🐯", "🐨", "🐸", "🦁", "🐧", "🐺", "🦉", "🐙", "🐝"];
+export const AVATAR_CHOICES = [
+  "🦊",
+  "🐼",
+  "🦄",
+  "🐯",
+  "🐨",
+  "🐸",
+  "🦁",
+  "🐧",
+  "🐺",
+  "🦉",
+  "🐙",
+  "🐝",
+];
 
 /** Nickname / avatar changes for the guest player. */
 export async function updateGuestProfile(

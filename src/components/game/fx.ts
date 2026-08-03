@@ -123,8 +123,7 @@ function getCtx() {
   if (!audioCtx) {
     const Ctor =
       window.AudioContext ??
-      (window as unknown as { webkitAudioContext?: typeof AudioContext })
-        .webkitAudioContext;
+      (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
     if (!Ctor) return null;
     audioCtx = new Ctor();
   }
@@ -163,8 +162,7 @@ export function sfx(name: SfxName, enabled = true) {
 }
 
 export function vibrate(pattern: number | number[], enabled = true) {
-  if (!enabled || typeof navigator === "undefined" || !("vibrate" in navigator))
-    return;
+  if (!enabled || typeof navigator === "undefined" || !("vibrate" in navigator)) return;
   navigator.vibrate(pattern);
 }
 
@@ -248,7 +246,10 @@ export function suspense(on: boolean) {
 /* Music moods per game state: lobby, spin, truth, dare, victory. */
 export type MusicMood = "off" | "lobby" | "spin" | "truth" | "dare" | "victory";
 
-const MOODS: Record<Exclude<MusicMood, "off">, { notes: number[]; step: number; type: OscillatorType; vol: number }> = {
+const MOODS: Record<
+  Exclude<MusicMood, "off">,
+  { notes: number[]; step: number; type: OscillatorType; vol: number }
+> = {
   lobby: { notes: [220, 277, 330, 415, 330, 277], step: 700, type: "sine", vol: 0.03 },
   spin: { notes: [180, 190, 200, 215, 230, 250], step: 260, type: "triangle", vol: 0.035 },
   truth: { notes: [262, 330, 392, 330], step: 900, type: "sine", vol: 0.025 },
@@ -256,7 +257,8 @@ const MOODS: Record<Exclude<MusicMood, "off">, { notes: number[]; step: number; 
   victory: { notes: [523, 659, 784, 1047, 784, 659], step: 240, type: "square", vol: 0.03 },
 };
 
-let moodNodes: { osc: OscillatorNode; gain: GainNode; timer: number; mood: MusicMood } | null = null;
+let moodNodes: { osc: OscillatorNode; gain: GainNode; timer: number; mood: MusicMood } | null =
+  null;
 
 export function setMusicMood(mood: MusicMood) {
   const ac = getCtx();

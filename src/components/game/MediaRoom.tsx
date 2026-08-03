@@ -4,16 +4,7 @@
  * speaker views, push-to-talk (hold space), and host mute-all.
  */
 import { useEffect, useRef, useState } from "react";
-import {
-  Grid2x2,
-  Maximize2,
-  Mic,
-  MicOff,
-  MonitorUp,
-  Radio,
-  Video,
-  VideoOff,
-} from "lucide-react";
+import { Grid2x2, Maximize2, Mic, MicOff, MonitorUp, Radio, Video, VideoOff } from "lucide-react";
 import { useMediaRoom } from "@/lib/webrtc";
 
 function Tile({
@@ -84,17 +75,8 @@ export function MediaRoom({
   const [ptt, setPtt] = useState(false);
   const [speakerView, setSpeakerView] = useState(false);
 
-  const {
-    localStream,
-    peers,
-    speaking,
-    micOn,
-    camOn,
-    error,
-    toggleMic,
-    toggleCam,
-    shareScreen,
-  } = useMediaRoom({ partyId, userId, enabled: joined, wantVideo: video && allowVideo });
+  const { localStream, peers, speaking, micOn, camOn, error, toggleMic, toggleCam, shareScreen } =
+    useMediaRoom({ partyId, userId, enabled: joined, wantVideo: video && allowVideo });
 
   /* host mute-all */
   useEffect(() => {
@@ -157,7 +139,11 @@ export function MediaRoom({
             )}
             {allowVideo && video && (
               <>
-                <button onClick={() => void shareScreen()} aria-label="Share screen" className="press-3d rounded-xl bg-secondary/60 p-2">
+                <button
+                  onClick={() => void shareScreen()}
+                  aria-label="Share screen"
+                  className="press-3d rounded-xl bg-secondary/60 p-2"
+                >
                   <MonitorUp className="size-4" />
                 </button>
                 <button
@@ -197,7 +183,9 @@ export function MediaRoom({
 
       {error && <p className="mt-2 text-[11px] text-destructive">{error}</p>}
       {ptt && joined && (
-        <p className="mt-2 text-[11px] text-muted-foreground">Hold <strong>Space</strong> to talk.</p>
+        <p className="mt-2 text-[11px] text-muted-foreground">
+          Hold <strong>Space</strong> to talk.
+        </p>
       )}
 
       {joined && (

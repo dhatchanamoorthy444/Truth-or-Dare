@@ -120,22 +120,150 @@ export interface Preset {
 }
 
 export const PRESETS: Preset[] = [
-  { id: "casual", label: "Casual Party", emoji: "🎉", theme: "fantasy", categories: ["friends", "party"], difficulty: "easy", vibe: "Lights up, good vibes only" },
-  { id: "funny", label: "Funny Night", emoji: "😂", theme: "fantasy", categories: ["funny", "friends"], difficulty: "medium", vibe: "Comedy hour, no mercy" },
-  { id: "couples", label: "Couples", emoji: "❤️", theme: "fantasy", categories: ["couples", "romantic"], difficulty: "medium", vibe: "Just the two of you" },
-  { id: "family", label: "Family", emoji: "👨‍👩‍👧", theme: "fantasy", categories: ["family", "kids"], difficulty: "easy", vibe: "Living-room safe" },
-  { id: "extreme", label: "Extreme", emoji: "🔥", theme: "warfare", categories: ["extreme", "party"], difficulty: "crazy", vibe: "No backing out" },
-  { id: "college", label: "College", emoji: "🎓", theme: "cyber", categories: ["party", "friends", "funny"], difficulty: "hard", vibe: "Dorm-room chaos" },
-  { id: "horror", label: "Horror Night", emoji: "👻", theme: "horror", categories: ["extreme", "friends"], difficulty: "hard", vibe: "Something is breathing" },
-  { id: "fantasy", label: "Fantasy Adventure", emoji: "🧙", theme: "fantasy", categories: ["friends", "party"], difficulty: "medium", vibe: "Quests and dragons" },
-  { id: "space", label: "Space Mission", emoji: "🚀", theme: "space", categories: ["friends", "funny"], difficulty: "medium", vibe: "Zero gravity dares" },
-  { id: "agent", label: "Secret Agent", emoji: "🕵", theme: "cyber", categories: ["friends", "extreme"], difficulty: "hard", vibe: "Classified missions" },
-  { id: "pirate", label: "Pirate Party", emoji: "🏴", theme: "warfare", categories: ["party", "funny"], difficulty: "medium", vibe: "Plunder and punishment" },
-  { id: "cyberpunk", label: "Cyberpunk", emoji: "🤖", theme: "cyber", categories: ["party", "extreme"], difficulty: "hard", vibe: "Neon and noise" },
-  { id: "beach", label: "Beach Party", emoji: "🏝", theme: "space", categories: ["party", "romantic", "funny"], difficulty: "easy", vibe: "Sun, sand, dares" },
-  { id: "christmas", label: "Christmas", emoji: "🎄", theme: "warfare", categories: ["family", "funny"], difficulty: "easy", vibe: "Cosy chaos" },
-  { id: "halloween", label: "Halloween", emoji: "🎃", theme: "horror", categories: ["funny", "extreme"], difficulty: "medium", vibe: "Trick or dare" },
-  { id: "dragon", label: "Dragon Kingdom", emoji: "🐉", theme: "fantasy", categories: ["party", "extreme"], difficulty: "hard", vibe: "Face the wyrm" },
+  {
+    id: "casual",
+    label: "Casual Party",
+    emoji: "🎉",
+    theme: "fantasy",
+    categories: ["friends", "party"],
+    difficulty: "easy",
+    vibe: "Lights up, good vibes only",
+  },
+  {
+    id: "funny",
+    label: "Funny Night",
+    emoji: "😂",
+    theme: "fantasy",
+    categories: ["funny", "friends"],
+    difficulty: "medium",
+    vibe: "Comedy hour, no mercy",
+  },
+  {
+    id: "couples",
+    label: "Couples",
+    emoji: "❤️",
+    theme: "fantasy",
+    categories: ["couples", "romantic"],
+    difficulty: "medium",
+    vibe: "Just the two of you",
+  },
+  {
+    id: "family",
+    label: "Family",
+    emoji: "👨‍👩‍👧",
+    theme: "fantasy",
+    categories: ["family", "kids"],
+    difficulty: "easy",
+    vibe: "Living-room safe",
+  },
+  {
+    id: "extreme",
+    label: "Extreme",
+    emoji: "🔥",
+    theme: "warfare",
+    categories: ["extreme", "party"],
+    difficulty: "crazy",
+    vibe: "No backing out",
+  },
+  {
+    id: "college",
+    label: "College",
+    emoji: "🎓",
+    theme: "cyber",
+    categories: ["party", "friends", "funny"],
+    difficulty: "hard",
+    vibe: "Dorm-room chaos",
+  },
+  {
+    id: "horror",
+    label: "Horror Night",
+    emoji: "👻",
+    theme: "horror",
+    categories: ["extreme", "friends"],
+    difficulty: "hard",
+    vibe: "Something is breathing",
+  },
+  {
+    id: "fantasy",
+    label: "Fantasy Adventure",
+    emoji: "🧙",
+    theme: "fantasy",
+    categories: ["friends", "party"],
+    difficulty: "medium",
+    vibe: "Quests and dragons",
+  },
+  {
+    id: "space",
+    label: "Space Mission",
+    emoji: "🚀",
+    theme: "space",
+    categories: ["friends", "funny"],
+    difficulty: "medium",
+    vibe: "Zero gravity dares",
+  },
+  {
+    id: "agent",
+    label: "Secret Agent",
+    emoji: "🕵",
+    theme: "cyber",
+    categories: ["friends", "extreme"],
+    difficulty: "hard",
+    vibe: "Classified missions",
+  },
+  {
+    id: "pirate",
+    label: "Pirate Party",
+    emoji: "🏴",
+    theme: "warfare",
+    categories: ["party", "funny"],
+    difficulty: "medium",
+    vibe: "Plunder and punishment",
+  },
+  {
+    id: "cyberpunk",
+    label: "Cyberpunk",
+    emoji: "🤖",
+    theme: "cyber",
+    categories: ["party", "extreme"],
+    difficulty: "hard",
+    vibe: "Neon and noise",
+  },
+  {
+    id: "beach",
+    label: "Beach Party",
+    emoji: "🏝",
+    theme: "space",
+    categories: ["party", "romantic", "funny"],
+    difficulty: "easy",
+    vibe: "Sun, sand, dares",
+  },
+  {
+    id: "christmas",
+    label: "Christmas",
+    emoji: "🎄",
+    theme: "warfare",
+    categories: ["family", "funny"],
+    difficulty: "easy",
+    vibe: "Cosy chaos",
+  },
+  {
+    id: "halloween",
+    label: "Halloween",
+    emoji: "🎃",
+    theme: "horror",
+    categories: ["funny", "extreme"],
+    difficulty: "medium",
+    vibe: "Trick or dare",
+  },
+  {
+    id: "dragon",
+    label: "Dragon Kingdom",
+    emoji: "🐉",
+    theme: "fantasy",
+    categories: ["party", "extreme"],
+    difficulty: "hard",
+    vibe: "Face the wyrm",
+  },
 ];
 
 export const presetById = (id: string) => PRESETS.find((p) => p.id === id) ?? PRESETS[0]!;
@@ -143,7 +271,13 @@ export const presetById = (id: string) => PRESETS.find((p) => p.id === id) ?? PR
 /* --------------------------- question scenarios --------------------------- */
 
 /** Host-facing scenario chips, each mapped onto the underlying prompt banks. */
-export const SCENARIOS: { id: string; label: string; emoji: string; categories: Category[]; adult?: boolean }[] = [
+export const SCENARIOS: {
+  id: string;
+  label: string;
+  emoji: string;
+  categories: Category[];
+  adult?: boolean;
+}[] = [
   { id: "funny", label: "Funny", emoji: "😂", categories: ["funny"] },
   { id: "embarrassing", label: "Embarrassing", emoji: "🙈", categories: ["party", "friends"] },
   { id: "romantic", label: "Romantic", emoji: "🌹", categories: ["romantic"] },
@@ -221,16 +355,76 @@ export interface MysteryOutcome {
 }
 
 export const MYSTERY_OUTCOMES: MysteryOutcome[] = [
-  { id: "double-dare", label: "Double Dare", emoji: "🔥", blurb: "Two dares back to back — double the reward.", bonus: 25 },
-  { id: "reverse-dare", label: "Reverse Dare", emoji: "🔄", blurb: "The challenge bounces back to the player who watched you hardest.", bonus: 10 },
-  { id: "truth-for-everyone", label: "Truth for Everyone", emoji: "🗣️", blurb: "The whole room answers this truth out loud.", bonus: 15 },
-  { id: "random-punishment", label: "Random Punishment", emoji: "⚡", blurb: "Fate picks a punishment — no way out.", bonus: 5 },
-  { id: "bonus-coins", label: "Bonus Coins", emoji: "🪙", blurb: "Instant coin drop, no strings attached.", bonus: 20 },
-  { id: "secret-mission", label: "Secret Mission", emoji: "🕵", blurb: "A hidden objective only you can see.", bonus: 30 },
-  { id: "shield-card", label: "Shield Card", emoji: "🛡️", blurb: "You bank one free skip for later.", bonus: 10 },
-  { id: "swap-player", label: "Swap Player", emoji: "🔀", blurb: "Swap the spotlight with a random player.", bonus: 10 },
-  { id: "extra-spin", label: "Extra Spin", emoji: "🎡", blurb: "The wheel spins one more time right after this.", bonus: 15 },
-  { id: "golden-reward", label: "Golden Reward", emoji: "🏆", blurb: "Complete this and take triple points.", bonus: 50 },
+  {
+    id: "double-dare",
+    label: "Double Dare",
+    emoji: "🔥",
+    blurb: "Two dares back to back — double the reward.",
+    bonus: 25,
+  },
+  {
+    id: "reverse-dare",
+    label: "Reverse Dare",
+    emoji: "🔄",
+    blurb: "The challenge bounces back to the player who watched you hardest.",
+    bonus: 10,
+  },
+  {
+    id: "truth-for-everyone",
+    label: "Truth for Everyone",
+    emoji: "🗣️",
+    blurb: "The whole room answers this truth out loud.",
+    bonus: 15,
+  },
+  {
+    id: "random-punishment",
+    label: "Random Punishment",
+    emoji: "⚡",
+    blurb: "Fate picks a punishment — no way out.",
+    bonus: 5,
+  },
+  {
+    id: "bonus-coins",
+    label: "Bonus Coins",
+    emoji: "🪙",
+    blurb: "Instant coin drop, no strings attached.",
+    bonus: 20,
+  },
+  {
+    id: "secret-mission",
+    label: "Secret Mission",
+    emoji: "🕵",
+    blurb: "A hidden objective only you can see.",
+    bonus: 30,
+  },
+  {
+    id: "shield-card",
+    label: "Shield Card",
+    emoji: "🛡️",
+    blurb: "You bank one free skip for later.",
+    bonus: 10,
+  },
+  {
+    id: "swap-player",
+    label: "Swap Player",
+    emoji: "🔀",
+    blurb: "Swap the spotlight with a random player.",
+    bonus: 10,
+  },
+  {
+    id: "extra-spin",
+    label: "Extra Spin",
+    emoji: "🎡",
+    blurb: "The wheel spins one more time right after this.",
+    bonus: 15,
+  },
+  {
+    id: "golden-reward",
+    label: "Golden Reward",
+    emoji: "🏆",
+    blurb: "Complete this and take triple points.",
+    bonus: 50,
+  },
 ];
 
 export const rollMystery = (chance: number) =>
@@ -260,13 +454,7 @@ export const randomMission = () =>
 
 /* --------------------------------- phases --------------------------------- */
 
-export type RoundPhase =
-  | "idle"
-  | "countdown"
-  | "imposter"
-  | "victim"
-  | "challenge"
-  | "recap";
+export type RoundPhase = "idle" | "countdown" | "imposter" | "victim" | "challenge" | "recap";
 
-export const pickRandom = <T,>(list: T[]): T | null =>
+export const pickRandom = <T>(list: T[]): T | null =>
   list.length ? list[Math.floor(Math.random() * list.length)]! : null;

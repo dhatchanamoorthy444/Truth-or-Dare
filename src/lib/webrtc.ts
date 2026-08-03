@@ -204,8 +204,10 @@ export function useMediaRoom({
     }
     const ctx =
       audioCtxRef.current ??
-      (audioCtxRef.current = new (window.AudioContext ||
-        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)());
+      (audioCtxRef.current = new (
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
+      )());
 
     const register = (id: string, stream: MediaStream) => {
       if (analysers.current.has(id) || !stream.getAudioTracks().length) return;

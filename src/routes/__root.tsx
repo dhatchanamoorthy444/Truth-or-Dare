@@ -88,15 +88,28 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:title", content: "Truth or Dare — Neon Party Game" },
       {
         property: "og:description",
-        content: "A viral-style Truth or Dare game with 2000+ challenges, spin wheel, XP, streaks and neon animations. No login, works offline.",
+        content:
+          "A viral-style Truth or Dare game with 2000+ challenges, spin wheel, XP, streaks and neon animations. No login, works offline.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@Lovable" },
       { name: "twitter:title", content: "Truth or Dare — Neon Party Game" },
-      { name: "twitter:description", content: "A viral-style Truth or Dare game with 2000+ challenges, spin wheel, XP, streaks and neon animations. No login, works offline." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/1a016cc1-daf0-4b5c-bce4-8715c239b530/id-preview-a2c1511e--0f3ed210-b6b0-4a4a-af83-0dec04fb44d7.lovable.app-1785647080599.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/1a016cc1-daf0-4b5c-bce4-8715c239b530/id-preview-a2c1511e--0f3ed210-b6b0-4a4a-af83-0dec04fb44d7.lovable.app-1785647080599.png" },
+      {
+        name: "twitter:description",
+        content:
+          "A viral-style Truth or Dare game with 2000+ challenges, spin wheel, XP, streaks and neon animations. No login, works offline.",
+      },
+      {
+        property: "og:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/1a016cc1-daf0-4b5c-bce4-8715c239b530/id-preview-a2c1511e--0f3ed210-b6b0-4a4a-af83-0dec04fb44d7.lovable.app-1785647080599.png",
+      },
+      {
+        name: "twitter:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/1a016cc1-daf0-4b5c-bce4-8715c239b530/id-preview-a2c1511e--0f3ed210-b6b0-4a4a-af83-0dec04fb44d7.lovable.app-1785647080599.png",
+      },
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },

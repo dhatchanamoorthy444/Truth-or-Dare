@@ -54,16 +54,15 @@ export function RegretRoulette({
   const seg = 360 / n;
 
   const gradient = `conic-gradient(${players
-    .map(
-      (_, i) => `${SEGMENT_COLORS[i % SEGMENT_COLORS.length]} ${i * seg}deg ${(i + 1) * seg}deg`,
-    )
+    .map((_, i) => `${SEGMENT_COLORS[i % SEGMENT_COLORS.length]} ${i * seg}deg ${(i + 1) * seg}deg`)
     .join(", ")})`;
 
   useEffect(() => {
     if (!spin || spin.at === lastSpin.current) return;
     lastSpin.current = spin.at;
     const index = Math.min(Math.max(spin.index, 0), n - 1);
-    const target = angleRef.current + 360 * 6 + (360 - (index * seg + seg / 2)) - (angleRef.current % 360);
+    const target =
+      angleRef.current + 360 * 6 + (360 - (index * seg + seg / 2)) - (angleRef.current % 360);
     angleRef.current = target;
     setSpinning(true);
     sfx("spin", sound);
@@ -71,7 +70,10 @@ export function RegretRoulette({
     vibrate([10, 40, 10, 40, 10], haptics);
 
     void controls
-      .start({ rotate: target, transition: { duration: SPIN_MS / 1000, ease: [0.12, 0.72, 0.08, 1] } })
+      .start({
+        rotate: target,
+        transition: { duration: SPIN_MS / 1000, ease: [0.12, 0.72, 0.08, 1] },
+      })
       .then(() => {
         setSpinning(false);
         suspense(false);
@@ -120,7 +122,10 @@ export function RegretRoulette({
             <span
               key={p.id}
               className="absolute left-1/2 top-1/2 origin-left truncate text-[11px] font-black text-background"
-              style={{ transform: `rotate(${i * seg + seg / 2}deg) translateX(48px)`, maxWidth: 90 }}
+              style={{
+                transform: `rotate(${i * seg + seg / 2}deg) translateX(48px)`,
+                maxWidth: 90,
+              }}
             >
               {p.emoji} {p.name}
             </span>

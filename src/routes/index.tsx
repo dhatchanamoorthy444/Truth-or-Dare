@@ -72,9 +72,7 @@ function Index() {
           <div key={label} className="glass rounded-2xl px-3 py-4 text-center">
             <Icon className="mx-auto size-4 text-primary" />
             <p className="mt-1 font-display text-xl font-bold">{value}</p>
-            <p className="text-[10px] uppercase tracking-widest text-muted-foreground">
-              {label}
-            </p>
+            <p className="text-[10px] uppercase tracking-widest text-muted-foreground">{label}</p>
           </div>
         ))}
       </div>

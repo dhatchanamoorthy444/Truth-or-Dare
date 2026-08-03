@@ -81,7 +81,8 @@ export function RoomChat({
     return (
       <span>
         {body.split(/(@\S+)/g).map((chunk, i) =>
-          chunk.startsWith("@") && memberNames.some((n) => chunk.slice(1).startsWith(n.split(" ")[0] ?? "")) ? (
+          chunk.startsWith("@") &&
+          memberNames.some((n) => chunk.slice(1).startsWith(n.split(" ")[0] ?? "")) ? (
             <span key={i} className="rounded bg-primary/20 px-1 font-bold text-primary">
               {chunk}
             </span>
@@ -102,7 +103,10 @@ export function RoomChat({
             <strong>{pinned.profile?.username ?? "Player"}:</strong> {pinned.body}
           </span>
           {isHost && (
-            <button aria-label="Unpin message" onClick={() => void pinMessage(partyId, pinned.id, false)}>
+            <button
+              aria-label="Unpin message"
+              onClick={() => void pinMessage(partyId, pinned.id, false)}
+            >
               <X className="size-3.5 text-muted-foreground" />
             </button>
           )}
@@ -117,7 +121,9 @@ export function RoomChat({
         }}
         className="glass max-h-72 space-y-2 overflow-y-auto rounded-2xl p-3"
       >
-        {messages.length === 0 && <p className="text-xs text-muted-foreground">Say hi to the room…</p>}
+        {messages.length === 0 && (
+          <p className="text-xs text-muted-foreground">Say hi to the room…</p>
+        )}
         {messages.map((m) => {
           const reactions = (m.reactions ?? {}) as Record<string, string[]>;
           const parent = m.reply_to ? byId[m.reply_to] : null;
@@ -164,7 +170,11 @@ export function RoomChat({
                     <Reply className="size-3.5 text-muted-foreground" />
                   </button>
                   {isHost && (
-                    <button aria-label="Pin message" onClick={() => void pinMessage(partyId, m.id, true)} className="p-1">
+                    <button
+                      aria-label="Pin message"
+                      onClick={() => void pinMessage(partyId, m.id, true)}
+                      className="p-1"
+                    >
                       <Pin className="size-3.5 text-muted-foreground" />
                     </button>
                   )}
@@ -221,7 +231,10 @@ export function RoomChat({
           placeholder="Message, @mention or paste a GIF link…"
           className="min-w-0 flex-1 bg-transparent px-2 py-2 text-sm outline-none placeholder:text-muted-foreground"
         />
-        <button aria-label="Send message" className="press-3d rounded-xl bg-primary p-2.5 text-primary-foreground">
+        <button
+          aria-label="Send message"
+          className="press-3d rounded-xl bg-primary p-2.5 text-primary-foreground"
+        >
           <Send className="size-4" />
         </button>
       </form>

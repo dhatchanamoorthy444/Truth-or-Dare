@@ -47,7 +47,9 @@ export function TruthTellerReveal({
           {avatar}
         </motion.span>
         <h2 className="mt-3 font-display text-3xl font-black gradient-text">{name}</h2>
-        <p className="mt-1 font-mono text-xs tracking-[0.2em] text-muted-foreground">{playerCode}</p>
+        <p className="mt-1 font-mono text-xs tracking-[0.2em] text-muted-foreground">
+          {playerCode}
+        </p>
         <p className="mt-4 text-[11px] uppercase tracking-widest text-muted-foreground">
           Everyone watch closely…
         </p>
