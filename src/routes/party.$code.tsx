@@ -1007,7 +1007,7 @@ function PartyPage() {
               </div>
             )}
 
-            <div className="mt-5 flex justify-center gap-2">
+            <div className="mt-5 flex flex-wrap justify-center gap-2">
               {EMOJIS.map((e) => (
                 <button
                   key={e}
@@ -1105,58 +1105,35 @@ function PartyPage() {
           </p>
         )}
 
-        {/* ---------- chat ---------- */}
-        <h2 className="mt-8 text-xs font-bold uppercase tracking-widest text-muted-foreground">
-          Party chat
-        </h2>
-        <div className="glass mt-2 max-h-64 space-y-1.5 overflow-y-auto rounded-2xl p-3">
-          {messages.length === 0 && (
-            <p className="text-xs text-muted-foreground">Say hi to the room…</p>
-          )}
-          {messages.map((m) => (
-            <p key={m.id} className="text-sm">
-              <span className="mr-1">{m.profile?.avatar}</span>
-              <span className="font-bold">{m.profile?.username ?? "Player"}</span>{" "}
-              <span className={m.kind === "system" ? "text-muted-foreground italic" : ""}>
-                {m.body}
-              </span>
-            </p>
-          ))}
-          <div ref={chatEnd} />
-        </div>
-        {typing.length > 0 && (
-          <p className="mt-1 text-[11px] text-muted-foreground">someone is typing…</p>
-        )}
-      </main>
-
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (!profile) return;
-          void sendMessage(party.id, profile.id, chat);
-          setChat("");
-        }}
-        className="fixed inset-x-0 bottom-0 z-30 px-4 pb-4"
-      >
-        <div className="glass mx-auto flex max-w-4xl items-center gap-2 rounded-2xl p-2">
-          <input
-            value={chat}
-            onChange={(e) => {
-              setChat(e.target.value);
-              broadcastTyping();
-            }}
-            maxLength={300}
-            placeholder="Message the party…"
-            className="flex-1 bg-transparent px-3 py-2 text-sm outline-none placeholder:text-muted-foreground"
+        {/* ---------- voice + video ---------- */}
+        {profile && settings.voiceChat && (
+          <MediaRoom
+            partyId={party.id}
+            userId={profile.id}
+            names={Object.fromEntries(members.map((m) => [m.user_id, m.profile?.username ?? "Player"]))}
+            avatars={Object.fromEntries(members.map((m) => [m.user_id, m.profile?.avatar ?? "🎲"]))}
+            allowVideo={settings.videoChat}
+            isHost={isHost}
+            forceMuted={!!(party.settings as { muteAll?: boolean })?.muteAll}
+            onMuteAll={(on) => void patchParty({ settings: { ...settings, muteAll: on } })}
           />
-          <button
-            aria-label="Send message"
-            className="press-3d rounded-xl bg-primary p-2.5 text-primary-foreground"
-          >
-            <Send className="size-4" />
-          </button>
-        </div>
-      </form>
+        )}
+
+        {/* ---------- live room chat ---------- */}
+        <h2 className="mt-8 text-xs font-bold uppercase tracking-widest text-muted-foreground">
+          Live room chat
+        </h2>
+        <RoomChat
+          partyId={party.id}
+          me={profile}
+          isHost={isHost}
+          messages={messages}
+          typing={typing}
+          memberNames={members.map((m) => m.profile?.username ?? "Player")}
+          onTyping={broadcastTyping}
+        />
+        <div ref={chatEnd} />
+      </main>
     </div>
   );
 }
