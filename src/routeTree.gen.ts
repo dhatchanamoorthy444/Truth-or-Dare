@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as LobbyRouteImport } from './routes/lobby'
 import { Route as PlayRouteImport } from './routes/play'
 import { Route as PlayersRouteImport } from './routes/players'
 import { Route as ProfileRouteImport } from './routes/profile'
@@ -24,6 +25,11 @@ const IndexRoute = IndexRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LobbyRoute = LobbyRouteImport.update({
+  id: '/lobby',
+  path: '/lobby',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PlayRoute = PlayRouteImport.update({
@@ -50,6 +56,7 @@ const StatsRoute = StatsRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/lobby': typeof LobbyRoute
   '/play': typeof PlayRoute
   '/players': typeof PlayersRoute
   '/profile': typeof ProfileRoute
@@ -58,6 +65,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/lobby': typeof LobbyRoute
   '/play': typeof PlayRoute
   '/players': typeof PlayersRoute
   '/profile': typeof ProfileRoute
@@ -67,6 +75,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/lobby': typeof LobbyRoute
   '/play': typeof PlayRoute
   '/players': typeof PlayersRoute
   '/profile': typeof ProfileRoute
@@ -74,15 +83,25 @@ export interface FileRoutesById {
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/play' | '/players' | '/profile' | '/stats'
+  fullPaths:
+    '/' | '/auth' | '/lobby' | '/play' | '/players' | '/profile' | '/stats'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/play' | '/players' | '/profile' | '/stats'
-  id: '__root__' | '/' | '/auth' | '/play' | '/players' | '/profile' | '/stats'
+  to: '/' | '/auth' | '/lobby' | '/play' | '/players' | '/profile' | '/stats'
+  id:
+    | '__root__'
+    | '/'
+    | '/auth'
+    | '/lobby'
+    | '/play'
+    | '/players'
+    | '/profile'
+    | '/stats'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
+  LobbyRoute: typeof LobbyRoute
   PlayRoute: typeof PlayRoute
   PlayersRoute: typeof PlayersRoute
   ProfileRoute: typeof ProfileRoute
@@ -103,6 +122,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lobby': {
+      id: '/lobby'
+      path: '/lobby'
+      fullPath: '/lobby'
+      preLoaderRoute: typeof LobbyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/play': {
@@ -139,6 +165,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
+  LobbyRoute: LobbyRoute,
   PlayRoute: PlayRoute,
   PlayersRoute: PlayersRoute,
   ProfileRoute: ProfileRoute,
