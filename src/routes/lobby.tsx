@@ -1,6 +1,12 @@
 /** Party browser: quick match, create a party, join by code, public list. */
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { HostSettings } from "@/components/game/HostSettings";
+import {
+  DEFAULT_SETTINGS,
+  PRESETS,
+  type GameSettings,
+} from "@/lib/round-engine";
 import { toast } from "sonner";
 import { Globe, Lock, Users, Zap } from "lucide-react";
 import { Shell } from "@/components/game/Shell";
