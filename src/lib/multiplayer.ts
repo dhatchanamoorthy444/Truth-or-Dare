@@ -152,16 +152,25 @@ export function useParty(code: string, userId: string | undefined) {
   const [missing, setMissing] = useState(false);
 
   const loadParty = useCallback(async () => {
-    const { data } = await supabase
+    let { data } = await supabase
       .from("parties")
       .select("*")
       .eq("code", code.toUpperCase())
       .maybeSingle();
+    // Private parties are hidden from non-members, so an invited player arriving via
+    // a share link joins through the secured RPC before the row becomes visible.
+    if (!data && userId) {
+      try {
+        data = await joinParty(code, userId);
+      } catch {
+        data = null;
+      }
+    }
     setParty(data ?? null);
     setMissing(!data);
     setLoading(false);
     return data ?? null;
-  }, [code]);
+  }, [code, userId]);
 
   const loadMembers = useCallback(async (partyId: string) => {
     const { data } = await supabase
