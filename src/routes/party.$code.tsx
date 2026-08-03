@@ -603,10 +603,139 @@ function PartyPage() {
                 Start match
               </button>
             )}
+            {isHost && (
+              <>
+                <button
+                  onClick={() => setShowSettings((s) => !s)}
+                  className="press-3d mt-2 flex w-full items-center justify-center gap-2 rounded-2xl bg-secondary/60 py-3 text-xs font-black uppercase tracking-widest text-muted-foreground"
+                >
+                  <Settings2 className="size-4" />
+                  {showSettings ? "Hide" : "Host"} game settings · {preset.label}
+                </button>
+                {showSettings && (
+                  <div className="glass mt-3 rounded-3xl p-4">
+                    <HostSettings
+                      settings={settings}
+                      scenarios={scenarios}
+                      onScenarios={setScenarios}
+                      onChange={(patch) => void saveSettings(patch)}
+                    />
+                  </div>
+                )}
+              </>
+            )}
           </section>
         )}
 
-        {party.status === "playing" && (
+        {party.status === "playing" && phase === "imposter" && (
+          <section className="text-center">
+            <p className="text-xs uppercase tracking-widest text-muted-foreground">Round {party.round}</p>
+            {imposterIsMe ? (
+              <>
+                <h2 className="mt-2 font-display text-2xl font-black gradient-text">
+                  🕵️ You are the Secret Imposter
+                </h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Pick tonight's victim — or let the wheel decide.
+                </p>
+                <div className="mt-5 grid gap-2 sm:grid-cols-2">
+                  {players.map((p) => (
+                    <button
+                      key={p.id}
+                      onClick={() => void chooseVictim(p.user_id)}
+                      className="glass press-3d flex items-center gap-3 rounded-2xl px-4 py-3 text-left"
+                    >
+                      <span className="text-2xl">{p.profile?.avatar}</span>
+                      <span className="text-sm font-bold">{p.profile?.username}</span>
+                    </button>
+                  ))}
+                </div>
+                <button
+                  onClick={() => setShowWheel(true)}
+                  className="press-3d neon-glow mt-3 w-full rounded-2xl bg-primary py-3 text-xs font-black uppercase tracking-widest text-primary-foreground"
+                >
+                  🎡 Spin the wheel of victims
+                </button>
+                {showWheel && (
+                  <div className="mt-6">
+                    <SpinWheel
+                      players={players.map((p) => ({
+                        id: p.user_id,
+                        name: p.profile?.username ?? "Player",
+                        emoji: p.profile?.avatar ?? "🎲",
+                        score: p.score,
+                        truths: p.truths,
+                        dares: p.dares,
+                        skips: 0,
+                      }))}
+                      onPick={(p) => void chooseVictim(p.id)}
+                      sound
+                      haptics
+                    />
+                  </div>
+                )}
+              </>
+            ) : (
+              <>
+                <h2 className="mt-2 font-display text-2xl font-black">🕵️ An imposter is choosing…</h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Someone in this room knows who's next. Stay calm.
+                </p>
+              </>
+            )}
+          </section>
+        )}
+
+        {party.status === "playing" && phase === "victim" && (
+          <section className="text-center">
+            <h2 className="font-display text-2xl font-black">🎡 Wheel of Victims</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {isHost ? "Spin to reveal who's up." : "The host is spinning the wheel…"}
+            </p>
+            {isHost && (
+              <div className="mt-6">
+                <SpinWheel
+                  players={players.map((p) => ({
+                    id: p.user_id,
+                    name: p.profile?.username ?? "Player",
+                    emoji: p.profile?.avatar ?? "🎲",
+                    score: p.score,
+                    truths: p.truths,
+                    dares: p.dares,
+                    skips: 0,
+                  }))}
+                  onPick={(p) => void chooseVictim(p.id)}
+                  sound
+                  haptics
+                />
+              </div>
+            )}
+          </section>
+        )}
+
+        {party.status === "playing" && phase === "recap" && recap && (
+          <section className="pop-in text-center">
+            <h2 className="font-display text-3xl font-black gradient-text">Round {party.round} recap</h2>
+            <div className="glass-strong mx-auto mt-4 max-w-md space-y-2 rounded-3xl p-5 text-left text-sm">
+              <p>
+                🏅 <strong>MVP:</strong> {recap.winner}{" "}
+                {recap.completed ? `(+${recap.points} for a ${recap.type})` : "(chickened out)"}
+              </p>
+              <p>
+                😂 <strong>Funniest moment:</strong> {recap.funniest} · {recap.votes} votes
+              </p>
+              <p>
+                {recap.reaction} <strong>Crowd reaction of the round</strong>
+              </p>
+              {recap.mission && <p>🎯 A secret mission was completed!</p>}
+            </div>
+            <p className="mt-4 text-xs uppercase tracking-widest text-muted-foreground">
+              Next round starting…
+            </p>
+          </section>
+        )}
+
+        {party.status === "playing" && phase === "challenge" && (
           <section className="text-center">
             <p className="text-xs uppercase tracking-widest text-muted-foreground">
               {world.questLabel} · Round {party.round}
@@ -615,12 +744,22 @@ function PartyPage() {
               {currentPlayer?.profile?.avatar} {currentPlayer?.profile?.username}
               <span className="text-muted-foreground">{myTurn ? " — your turn!" : "'s turn"}</span>
             </p>
+            {imposterIsMe && (
+              <p className="mt-1 text-[11px] uppercase tracking-widest text-primary neon-text">
+                🕵️ You are the secret imposter
+              </p>
+            )}
+            {mystery && (
+              <p className="mt-2 inline-block rounded-full bg-primary/15 px-3 py-1 text-[11px] font-bold text-primary">
+                {mystery.emoji} {mystery.label} — {mystery.blurb}
+              </p>
+            )}
 
             {secondsLeft !== null && (
               <div className="mx-auto mt-3 h-2 w-56 overflow-hidden rounded-full bg-secondary/60">
                 <div
                   className="h-full rounded-full bg-primary transition-[width] duration-500"
-                  style={{ width: `${(secondsLeft / TURN_SECONDS) * 100}%` }}
+                  style={{ width: `${(secondsLeft / settings.turnSeconds) * 100}%` }}
                 />
               </div>
             )}
@@ -652,24 +791,88 @@ function PartyPage() {
                   {challenge.flavour}
                 </p>
                 <p className="mt-3 font-display text-xl font-black leading-snug">{challenge.text}</p>
+                {challenge.second && (
+                  <p className="mt-3 rounded-2xl bg-dare/15 p-3 font-display text-lg font-black leading-snug text-dare">
+                    ⚡ Double Dare: {challenge.second}
+                  </p>
+                )}
                 <p className="mt-3 text-xs uppercase tracking-widest text-primary">
-                  {challenge.type} · {secondsLeft ?? 0}s left
+                  {challenge.type}
+                  {secondsLeft !== null ? ` · ${secondsLeft}s left` : " · no timer"}
                 </p>
                 {myTurn && (
-                  <div className="mt-5 grid grid-cols-2 gap-3">
+                  <>
+                    <div className="mt-5 grid grid-cols-2 gap-3">
+                      <button
+                        onClick={() => resolveTurn(true)}
+                        className="press-3d rounded-2xl bg-truth py-3 text-sm font-black uppercase tracking-widest text-background"
+                      >
+                        Completed
+                      </button>
+                      <button
+                        onClick={() => resolveTurn(false)}
+                        disabled={settings.skips !== -1 && (me?.skips_left ?? 0) <= 0}
+                        className="press-3d rounded-2xl bg-secondary py-3 text-sm font-black uppercase tracking-widest disabled:opacity-40"
+                      >
+                        Skip{settings.skips === -1 ? "" : ` (${me?.skips_left ?? 0})`}
+                      </button>
+                    </div>
+                    {settings.transfers && !party.transfer_used && (
+                      <button
+                        onClick={() => setTransferOpen((t) => !t)}
+                        className="press-3d mt-2 w-full rounded-2xl bg-primary/15 py-3 text-xs font-black uppercase tracking-widest text-primary"
+                      >
+                        🔁 Transfer this challenge
+                      </button>
+                    )}
+                    {transferOpen && (
+                      <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                        {players
+                          .filter((p) => p.user_id !== profile?.id)
+                          .map((p) => (
+                            <button
+                              key={p.id}
+                              onClick={() => void transferTo(p)}
+                              className="glass press-3d rounded-2xl px-4 py-2.5 text-left text-sm font-bold"
+                            >
+                              {p.profile?.avatar} {p.profile?.username}
+                            </button>
+                          ))}
+                      </div>
+                    )}
+                  </>
+                )}
+                {!myTurn && settings.voting && (
+                  <button
+                    onClick={() => currentPlayer && void voteFor(currentPlayer)}
+                    disabled={voted}
+                    className="press-3d mt-4 w-full rounded-2xl bg-secondary/60 py-2.5 text-xs font-black uppercase tracking-widest disabled:opacity-40"
+                  >
+                    {voted ? "Voted ✓" : "😂 Vote: that was hilarious"}
+                  </button>
+                )}
+              </div>
+            )}
+
+            {me?.mission && (
+              <div className="glass mx-auto mt-4 max-w-xl rounded-2xl p-4 text-left">
+                <button
+                  onClick={() => setShowMission((s) => !s)}
+                  className="text-[11px] font-black uppercase tracking-widest text-muted-foreground"
+                >
+                  🎯 Secret mission {showMission ? "(hide)" : "(tap to peek)"}
+                </button>
+                {showMission && (
+                  <>
+                    <p className="mt-2 text-sm font-bold">{me.mission}</p>
                     <button
-                      onClick={() => resolveTurn(true)}
-                      className="press-3d rounded-2xl bg-truth py-3 text-sm font-black uppercase tracking-widest text-background"
+                      onClick={() => void completeMission()}
+                      disabled={me.mission_done}
+                      className="press-3d mt-2 rounded-xl bg-primary px-4 py-2 text-[11px] font-black uppercase tracking-widest text-primary-foreground disabled:opacity-40"
                     >
-                      Completed
+                      {me.mission_done ? "Completed ✓" : "I did it (+30)"}
                     </button>
-                    <button
-                      onClick={() => resolveTurn(false)}
-                      className="press-3d rounded-2xl bg-secondary py-3 text-sm font-black uppercase tracking-widest"
-                    >
-                      Skip
-                    </button>
-                  </div>
+                  </>
                 )}
               </div>
             )}
