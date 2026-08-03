@@ -40,9 +40,12 @@ function AuthPage() {
     if (user) void navigate({ to: "/lobby" });
   }, [user, navigate]);
 
-  const submit = async (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
-    if (password.length < 6) return toast.error("Password needs at least 6 characters.");
+    if (password.length < 6) {
+      toast.error("Password needs at least 6 characters.");
+      return;
+    }
     setBusy(true);
     const fn =
       mode === "signup"
@@ -54,7 +57,10 @@ function AuthPage() {
         : supabase.auth.signInWithPassword({ email, password });
     const { error } = await fn;
     setBusy(false);
-    if (error) return toast.error(error.message);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     toast.success(mode === "signup" ? "Account created — you're in!" : "Welcome back!");
   };
 
