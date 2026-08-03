@@ -60,10 +60,6 @@ function PartyPage() {
   const chatEnd = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!profileLoading && !profile) void navigate({ to: "/auth" });
-  }, [profileLoading, profile, navigate]);
-
-  useEffect(() => {
     const t = window.setInterval(() => setNow(Date.now()), 500);
     return () => window.clearInterval(t);
   }, []);
