@@ -317,6 +317,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_use_party_topic: { Args: { _topic: string }; Returns: boolean }
+      claim_host: { Args: { _party: string }; Returns: boolean }
       is_party_host: {
         Args: { _party: string; _user: string }
         Returns: boolean
