@@ -1,7 +1,7 @@
 /** Shared app chrome: animated backdrop, top bar, bottom nav, theme handling. */
 import { Link, useRouterState } from "@tanstack/react-router";
 import { Dices, Home, Globe, Trophy, User, Moon, Sun, Volume2, VolumeX } from "lucide-react";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { AnimatedBackground } from "./AnimatedBackground";
 import { useGame } from "@/lib/game-store";
 import { sfx, toggleMusic } from "./fx";
@@ -18,6 +18,9 @@ export function Shell({ children }: { children: ReactNode }) {
   const { state, setSettings } = useGame();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { theme, sound, music } = state.settings;
+  // Sample ID is generated client-side, so only show it after hydration.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", theme === "dark");
@@ -42,7 +45,7 @@ export function Shell({ children }: { children: ReactNode }) {
           </Link>
           <div className="flex items-center gap-1">
             <span className="mr-1 hidden rounded-full border border-border/60 px-2 py-1 font-mono text-[10px] text-muted-foreground sm:inline">
-              {state.sampleId}
+              {mounted ? state.sampleId : ""}
             </span>
             <button
               aria-label="Toggle sound"
