@@ -472,32 +472,17 @@ export async function sendMessage(
   });
 }
 
-/** Toggle an emoji reaction on a single chat message. */
-export async function reactToMessage(
-  messageId: string,
-  emoji: string,
-  userId: string,
-  current: Record<string, string[]>,
-) {
-  const list = current[emoji] ?? [];
-  const next = { ...current };
-  next[emoji] = list.includes(userId) ? list.filter((u) => u !== userId) : [...list, userId];
-  if (!next[emoji]!.length) delete next[emoji];
-  await supabase
-    .from("party_messages")
-    .update({ reactions: next as never })
-    .eq("id", messageId);
+/**
+ * Toggle an emoji reaction on a single chat message. Runs server-side so a
+ * member can only touch the reactions map — never anyone else's message body.
+ */
+export async function reactToMessage(messageId: string, emoji: string) {
+  await supabase.rpc("react_to_message", { _message: messageId, _emoji: emoji });
 }
 
-/** Host-only: pin (or unpin) a message to the top of the room. */
+/** Host-only: pin (or unpin) a message. The host check happens server-side. */
 export async function pinMessage(partyId: string, messageId: string, pinned: boolean) {
-  if (pinned)
-    await supabase
-      .from("party_messages")
-      .update({ pinned: false })
-      .eq("party_id", partyId)
-      .eq("pinned", true);
-  await supabase.from("party_messages").update({ pinned }).eq("id", messageId);
+  await supabase.rpc("pin_message", { _party: partyId, _message: messageId, _pinned: pinned });
 }
 
 /**
