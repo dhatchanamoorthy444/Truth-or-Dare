@@ -310,9 +310,9 @@ function PartyPage() {
       mystery: null,
       current_challenge: null,
       victim_id: null,
-      imposter_id: null,
       transfer_used: false,
     });
+    await supabase.rpc("set_imposter", { _party: party!.id, _user: undefined, _round: 1 });
   };
 
   /** Host-only: picks the secret imposter and decides how the victim is chosen. */
@@ -327,10 +327,14 @@ function PartyPage() {
 
     if (chooser === "random") {
       const victim = pickRandom(players);
+      await supabase.rpc("set_imposter", {
+        _party: party.id,
+        _user: imposter?.user_id ?? undefined,
+        _round: party.round,
+      });
       await patchParty({
         status: "playing",
         phase: "challenge",
-        imposter_id: imposter?.user_id ?? null,
         victim_id: victim?.user_id ?? null,
         current_turn: victim?.user_id ?? null,
         transfer_used: false,
@@ -341,10 +345,14 @@ function PartyPage() {
       return;
     }
 
+    await supabase.rpc("set_imposter", {
+      _party: party.id,
+      _user: imposter?.user_id ?? undefined,
+      _round: party.round,
+    });
     await patchParty({
       status: "playing",
       phase: chooser === "host" ? "victim" : "imposter",
-      imposter_id: imposter?.user_id ?? null,
       victim_id: null,
       current_turn: null,
       transfer_used: false,
@@ -567,7 +575,6 @@ function PartyPage() {
           mystery: null,
           victim_id: null,
           current_turn: null,
-          imposter_id: null,
           transfer_used: false,
         });
       }
