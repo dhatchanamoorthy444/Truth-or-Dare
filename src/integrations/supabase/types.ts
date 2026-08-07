@@ -24,7 +24,6 @@ export type Database = {
           host_id: string
           host_seen_at: string
           id: string
-          imposter_id: string | null
           max_players: number
           mode: string
           mystery: Json | null
@@ -56,7 +55,6 @@ export type Database = {
           host_id: string
           host_seen_at?: string
           id?: string
-          imposter_id?: string | null
           max_players?: number
           mode?: string
           mystery?: Json | null
@@ -88,7 +86,6 @@ export type Database = {
           host_id?: string
           host_seen_at?: string
           id?: string
-          imposter_id?: string | null
           max_players?: number
           mode?: string
           mystery?: Json | null
@@ -137,6 +134,38 @@ export type Database = {
             foreignKeyName: "party_bans_party_id_fkey"
             columns: ["party_id"]
             isOneToOne: false
+            referencedRelation: "parties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      party_imposters: {
+        Row: {
+          created_at: string
+          imposter_id: string | null
+          party_id: string
+          round: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          imposter_id?: string | null
+          party_id: string
+          round?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          imposter_id?: string | null
+          party_id?: string
+          round?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "party_imposters_party_id_fkey"
+            columns: ["party_id"]
+            isOneToOne: true
             referencedRelation: "parties"
             referencedColumns: ["id"]
           },
@@ -317,6 +346,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      am_i_imposter: { Args: { _party: string }; Returns: boolean }
       can_use_party_topic: { Args: { _topic: string }; Returns: boolean }
       claim_host: { Args: { _party: string }; Returns: boolean }
       is_party_host: {
@@ -338,7 +368,6 @@ export type Database = {
           host_id: string
           host_seen_at: string
           id: string
-          imposter_id: string | null
           max_players: number
           mode: string
           mystery: Json | null
@@ -367,6 +396,18 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      pin_message: {
+        Args: { _message: string; _party: string; _pinned: boolean }
+        Returns: boolean
+      }
+      react_to_message: {
+        Args: { _emoji: string; _message: string }
+        Returns: boolean
+      }
+      set_imposter: {
+        Args: { _party: string; _round?: number; _user: string }
+        Returns: boolean
       }
       shares_party: { Args: { _a: string; _b: string }; Returns: boolean }
     }
