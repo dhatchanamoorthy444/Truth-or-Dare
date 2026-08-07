@@ -146,7 +146,7 @@ export function RoomChat({
                       {Object.entries(reactions).map(([emoji, users]) => (
                         <button
                           key={emoji}
-                          onClick={() => me && void reactToMessage(m.id, emoji, me.id, reactions)}
+                          onClick={() => me && void reactToMessage(m.id, emoji)}
                           className="rounded-full bg-secondary/60 px-2 py-0.5 text-[11px]"
                         >
                           {emoji} {users.length}
@@ -160,7 +160,7 @@ export function RoomChat({
                     <button
                       key={e}
                       aria-label={`React ${e}`}
-                      onClick={() => me && void reactToMessage(m.id, e, me.id, reactions)}
+                      onClick={() => me && void reactToMessage(m.id, e)}
                       className="rounded px-1 text-xs"
                     >
                       {e}
