@@ -128,7 +128,22 @@ function PartyPage() {
   const preset = presetById(party?.preset ?? "casual");
   const mystery = (party?.mystery ?? null) as MysteryOutcome | null;
   const recap = (party?.recap ?? null) as Recap | null;
-  const imposterIsMe = !!profile && party?.imposter_id === profile.id;
+  // The secret imposter is never part of the shared room row — each client asks
+  // the server whether *they* are the imposter, so nobody can peek at the feed.
+  const [imposterIsMe, setImposterIsMe] = useState(false);
+  useEffect(() => {
+    if (!party?.id || !profile) {
+      setImposterIsMe(false);
+      return;
+    }
+    let cancelled = false;
+    void supabase
+      .rpc("am_i_imposter", { _party: party.id })
+      .then(({ data }) => !cancelled && setImposterIsMe(data === true));
+    return () => {
+      cancelled = true;
+    };
+  }, [party?.id, party?.round, party?.phase, profile?.id]);
   const spin = (party?.spin ?? null) as SpinPayload | null;
   const verdicts = (party?.verdicts ?? {}) as Record<string, boolean>;
   const wheelPlayers = useMemo(
@@ -295,9 +310,9 @@ function PartyPage() {
       mystery: null,
       current_challenge: null,
       victim_id: null,
-      imposter_id: null,
       transfer_used: false,
     });
+    await supabase.rpc("set_imposter", { _party: party!.id, _user: null as unknown as string, _round: 1 });
   };
 
   /** Host-only: picks the secret imposter and decides how the victim is chosen. */
@@ -312,10 +327,14 @@ function PartyPage() {
 
     if (chooser === "random") {
       const victim = pickRandom(players);
+      await supabase.rpc("set_imposter", {
+        _party: party.id,
+        _user: (imposter?.user_id ?? null) as unknown as string,
+        _round: party.round,
+      });
       await patchParty({
         status: "playing",
         phase: "challenge",
-        imposter_id: imposter?.user_id ?? null,
         victim_id: victim?.user_id ?? null,
         current_turn: victim?.user_id ?? null,
         transfer_used: false,
@@ -326,10 +345,14 @@ function PartyPage() {
       return;
     }
 
+    await supabase.rpc("set_imposter", {
+      _party: party.id,
+      _user: (imposter?.user_id ?? null) as unknown as string,
+      _round: party.round,
+    });
     await patchParty({
       status: "playing",
       phase: chooser === "host" ? "victim" : "imposter",
-      imposter_id: imposter?.user_id ?? null,
       victim_id: null,
       current_turn: null,
       transfer_used: false,
@@ -552,7 +575,6 @@ function PartyPage() {
           mystery: null,
           victim_id: null,
           current_turn: null,
-          imposter_id: null,
           transfer_used: false,
         });
       }
