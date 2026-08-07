@@ -312,7 +312,7 @@ function PartyPage() {
       victim_id: null,
       transfer_used: false,
     });
-    await supabase.rpc("set_imposter", { _party: party!.id, _user: undefined, _round: 1 });
+    await supabase.rpc("set_imposter", { _party: party!.id, _user: null as unknown as string, _round: 1 });
   };
 
   /** Host-only: picks the secret imposter and decides how the victim is chosen. */
@@ -329,7 +329,7 @@ function PartyPage() {
       const victim = pickRandom(players);
       await supabase.rpc("set_imposter", {
         _party: party.id,
-        _user: imposter?.user_id ?? undefined,
+        _user: (imposter?.user_id ?? null) as unknown as string,
         _round: party.round,
       });
       await patchParty({
@@ -347,7 +347,7 @@ function PartyPage() {
 
     await supabase.rpc("set_imposter", {
       _party: party.id,
-      _user: imposter?.user_id ?? undefined,
+      _user: (imposter?.user_id ?? null) as unknown as string,
       _round: party.round,
     });
     await patchParty({
