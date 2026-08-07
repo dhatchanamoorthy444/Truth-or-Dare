@@ -128,7 +128,22 @@ function PartyPage() {
   const preset = presetById(party?.preset ?? "casual");
   const mystery = (party?.mystery ?? null) as MysteryOutcome | null;
   const recap = (party?.recap ?? null) as Recap | null;
-  const imposterIsMe = !!profile && party?.imposter_id === profile.id;
+  // The secret imposter is never part of the shared room row — each client asks
+  // the server whether *they* are the imposter, so nobody can peek at the feed.
+  const [imposterIsMe, setImposterIsMe] = useState(false);
+  useEffect(() => {
+    if (!party?.id || !profile) {
+      setImposterIsMe(false);
+      return;
+    }
+    let cancelled = false;
+    void supabase
+      .rpc("am_i_imposter", { _party: party.id })
+      .then(({ data }) => !cancelled && setImposterIsMe(data === true));
+    return () => {
+      cancelled = true;
+    };
+  }, [party?.id, party?.round, party?.phase, profile?.id]);
   const spin = (party?.spin ?? null) as SpinPayload | null;
   const verdicts = (party?.verdicts ?? {}) as Record<string, boolean>;
   const wheelPlayers = useMemo(
