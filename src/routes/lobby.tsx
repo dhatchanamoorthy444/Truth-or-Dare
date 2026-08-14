@@ -118,7 +118,7 @@ function LobbyPage() {
   return (
     <Shell>
       <div className="glass flex items-center gap-3 rounded-3xl p-4">
-        <span className="text-3xl">{profile.avatar}</span>
+        <PlayerAvatar avatar={profile.avatar} size={52} />
         <div className="flex-1">
           <p className="font-display text-lg font-black leading-tight">{profile.username}</p>
           <p className="text-[11px] text-muted-foreground">
@@ -155,6 +155,26 @@ function LobbyPage() {
           >
             🎲
           </button>
+        </div>
+        <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+          3D cartoon avatars
+        </p>
+        <div className="grid grid-cols-4 gap-2">
+          {IMAGE_AVATAR_CHOICES.map((a) => (
+            <button
+              key={a}
+              title={AVATAR_IMAGES[a.slice(4)]?.label}
+              onClick={async () => {
+                const updated = await updateGuestProfile(profile.id, { avatar: a });
+                if (updated) setProfile(updated);
+              }}
+              className={`press-3d flex items-center justify-center rounded-2xl p-1.5 transition ${
+                profile.avatar === a ? "bg-primary/20 ring-2 ring-primary" : "bg-secondary/50"
+              }`}
+            >
+              <PlayerAvatar avatar={a} size={56} />
+            </button>
+          ))}
         </div>
         <div className="flex flex-wrap gap-1.5">
           {AVATAR_CHOICES.map((a) => (
