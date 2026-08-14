@@ -84,7 +84,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content:
           "A viral-style Truth or Dare game with 2000+ challenges, spin wheel, XP, streaks and neon animations. No login, works offline.",
       },
-      { name: "theme-color", content: "#0b0713" },
+      { name: "theme-color", content: "#e0f2fe" },
       { property: "og:title", content: "Truth or Dare — Neon Party Game" },
       {
         property: "og:description",
