@@ -6,6 +6,8 @@ import { DEFAULT_SETTINGS, PRESETS, type GameSettings } from "@/lib/round-engine
 import { toast } from "sonner";
 import { Globe, Lock, Users, Zap } from "lucide-react";
 import { Shell } from "@/components/game/Shell";
+import { PlayerAvatar } from "@/components/game/PlayerAvatar";
+import { AVATAR_IMAGES, IMAGE_AVATAR_CHOICES } from "@/lib/avatars";
 import { supabase } from "@/integrations/supabase/client";
 import {
   GAME_MODES,
