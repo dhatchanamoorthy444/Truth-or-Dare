@@ -4,6 +4,7 @@
  * → playing (turn-based truth/dare with a shared timer) → results.
  * Every client stays in sync through realtime rows on the party record.
  */
+import { PlayerAvatar } from "@/components/game/PlayerAvatar";
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";

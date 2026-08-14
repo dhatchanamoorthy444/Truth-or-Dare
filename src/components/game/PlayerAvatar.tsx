@@ -6,7 +6,7 @@ export function PlayerAvatar({
   size = 32,
   className = "",
 }: {
-  avatar?: string | null;
+  avatar?: string | null | undefined;
   size?: number;
   className?: string;
 }) {
