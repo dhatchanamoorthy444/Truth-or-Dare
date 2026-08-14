@@ -642,7 +642,7 @@ function PartyPage() {
                 className="glass shuffle-card rounded-2xl px-3 py-2 text-xs font-bold"
                 style={{ animationDelay: `${i * 90}ms` }}
               >
-                {p.profile?.avatar} {p.profile?.username}
+                <PlayerAvatar avatar={p.profile?.avatar} size={22} /> {p.profile?.username}
               </span>
             ))}
           </div>
@@ -775,7 +775,7 @@ function PartyPage() {
                       onClick={() => void chooseVictim(p.user_id)}
                       className="glass press-3d flex items-center gap-3 rounded-2xl px-4 py-3 text-left"
                     >
-                      <span className="text-2xl">{p.profile?.avatar}</span>
+                      <PlayerAvatar avatar={p.profile?.avatar} size={30} />
                       <span className="text-sm font-bold">{p.profile?.username}</span>
                     </button>
                   ))}
@@ -862,7 +862,7 @@ function PartyPage() {
               {world.questLabel} · Round {party.round}
             </p>
             <p className="mt-1 font-display text-2xl font-black">
-              {currentPlayer?.profile?.avatar} {currentPlayer?.profile?.username}
+              <PlayerAvatar avatar={currentPlayer?.profile?.avatar} size={26} /> {currentPlayer?.profile?.username}
               <span className="text-muted-foreground">{myTurn ? " — your turn!" : "'s turn"}</span>
             </p>
             {imposterIsMe && (
@@ -953,7 +953,7 @@ function PartyPage() {
                               onClick={() => void transferTo(p)}
                               className="glass press-3d rounded-2xl px-4 py-2.5 text-left text-sm font-bold"
                             >
-                              {p.profile?.avatar} {p.profile?.username}
+                              <PlayerAvatar avatar={p.profile?.avatar} size={22} /> {p.profile?.username}
                             </button>
                           ))}
                       </div>
@@ -1074,7 +1074,7 @@ function PartyPage() {
                     <span className="font-display text-lg font-black text-muted-foreground">
                       {i + 1}
                     </span>
-                    <span className="text-2xl">{p.profile?.avatar}</span>
+                    <PlayerAvatar avatar={p.profile?.avatar} size={30} />
                     <span className="flex-1 text-sm font-bold">{p.profile?.username}</span>
                     <span className="font-display font-black">{p.score}</span>
                   </li>
@@ -1100,7 +1100,7 @@ function PartyPage() {
         <ul className="mt-2 grid gap-2 sm:grid-cols-2">
           {players.map((p) => (
             <li key={p.id} className="glass flex items-center gap-3 rounded-2xl px-3 py-2.5">
-              <span className="text-2xl">{p.profile?.avatar ?? "🎲"}</span>
+              <PlayerAvatar avatar={p.profile?.avatar} size={30} />
               <span className="min-w-0 flex-1">
                 <span className="flex items-center gap-1 truncate text-sm font-bold">
                   {p.profile?.username ?? "Player"}

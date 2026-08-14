@@ -3,6 +3,7 @@
  * system announcements, typing indicator, unread badge and auto-scroll.
  * GIFs are supported by pasting an image/gif URL — it renders inline.
  */
+import { PlayerAvatar } from "@/components/game/PlayerAvatar";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Pin, Reply, Send, X } from "lucide-react";
 import type { Profile, PartyMessage } from "@/lib/multiplayer";
@@ -135,7 +136,7 @@ export function RoomChat({
                 </p>
               )}
               <div className="flex items-start gap-1.5">
-                <span>{m.kind === "system" ? "📣" : m.profile?.avatar}</span>
+                {m.kind === "system" ? <span>📣</span> : <PlayerAvatar avatar={m.profile?.avatar} size={20} />}
                 <div className="min-w-0 flex-1">
                   <span className="font-bold">{m.profile?.username ?? "Player"}</span>{" "}
                   <span className={m.kind === "system" ? "italic text-muted-foreground" : ""}>

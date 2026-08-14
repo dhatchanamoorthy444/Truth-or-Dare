@@ -1,4 +1,5 @@
 /** 🎭 The Truth Teller — cinematic reveal of the player the roulette landed on. */
+import { PlayerAvatar } from "@/components/game/PlayerAvatar";
 import { useEffect } from "react";
 import { motion } from "motion/react";
 import { fireworks, heartbeat, sfx } from "./fx";
@@ -42,9 +43,9 @@ export function TruthTellerReveal({
         <motion.span
           animate={{ scale: [1, 1.12, 1] }}
           transition={{ repeat: Infinity, duration: 1.1 }}
-          className="mt-4 block text-7xl"
+          className="mt-4 flex justify-center"
         >
-          {avatar}
+          <PlayerAvatar avatar={avatar} size={112} />
         </motion.span>
         <h2 className="mt-3 font-display text-3xl font-black gradient-text">{name}</h2>
         <p className="mt-1 font-mono text-xs tracking-[0.2em] text-muted-foreground">
