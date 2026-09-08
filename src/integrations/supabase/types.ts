@@ -40,6 +40,10 @@ export type Database = {
           theme: string
           transfer_used: boolean
           turn_ends_at: string | null
+          turn_index: number
+          turn_order: string[]
+          turn_seq: number
+          turn_started_at: string | null
           updated_at: string
           used_ids: string[]
           verdicts: Json
@@ -71,6 +75,10 @@ export type Database = {
           theme?: string
           transfer_used?: boolean
           turn_ends_at?: string | null
+          turn_index?: number
+          turn_order?: string[]
+          turn_seq?: number
+          turn_started_at?: string | null
           updated_at?: string
           used_ids?: string[]
           verdicts?: Json
@@ -102,6 +110,10 @@ export type Database = {
           theme?: string
           transfer_used?: boolean
           turn_ends_at?: string | null
+          turn_index?: number
+          turn_order?: string[]
+          turn_seq?: number
+          turn_started_at?: string | null
           updated_at?: string
           used_ids?: string[]
           verdicts?: Json
@@ -176,6 +188,8 @@ export type Database = {
           dares: number
           id: string
           joined_at: string
+          last_seen_at: string
+          mic_muted: boolean
           mission: string | null
           mission_done: boolean
           party_id: string
@@ -186,12 +200,15 @@ export type Database = {
           team: string
           truths: number
           user_id: string
+          voice_on: boolean
           votes: number
         }
         Insert: {
           dares?: number
           id?: string
           joined_at?: string
+          last_seen_at?: string
+          mic_muted?: boolean
           mission?: string | null
           mission_done?: boolean
           party_id: string
@@ -202,12 +219,15 @@ export type Database = {
           team?: string
           truths?: number
           user_id: string
+          voice_on?: boolean
           votes?: number
         }
         Update: {
           dares?: number
           id?: string
           joined_at?: string
+          last_seen_at?: string
+          mic_muted?: boolean
           mission?: string | null
           mission_done?: boolean
           party_id?: string
@@ -218,6 +238,7 @@ export type Database = {
           team?: string
           truths?: number
           user_id?: string
+          voice_on?: boolean
           votes?: number
         }
         Relationships: [
@@ -346,9 +367,149 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      active_player_ids: { Args: { _party: string }; Returns: string[] }
+      all_player_ids: { Args: { _party: string }; Returns: string[] }
       am_i_imposter: { Args: { _party: string }; Returns: boolean }
+      begin_round: {
+        Args: { _imposter?: string; _party: string }
+        Returns: {
+          blue_score: number
+          code: string
+          created_at: string
+          current_challenge: Json | null
+          current_turn: string | null
+          host_id: string
+          host_seen_at: string
+          id: string
+          max_players: number
+          mode: string
+          mystery: Json | null
+          name: string
+          phase: string
+          preset: string
+          recap: Json | null
+          red_score: number
+          round: number
+          settings: Json
+          spin: Json | null
+          status: string
+          team_mode: boolean
+          theme: string
+          transfer_used: boolean
+          turn_ends_at: string | null
+          turn_index: number
+          turn_order: string[]
+          turn_seq: number
+          turn_started_at: string | null
+          updated_at: string
+          used_ids: string[]
+          verdicts: Json
+          victim_id: string | null
+          visibility: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "parties"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       can_use_party_topic: { Args: { _topic: string }; Returns: boolean }
+      cast_verdict: {
+        Args: { _party: string; _pass: boolean }
+        Returns: boolean
+      }
       claim_host: { Args: { _party: string }; Returns: boolean }
+      complete_mission: { Args: { _party: string }; Returns: boolean }
+      end_match: {
+        Args: { _party: string }
+        Returns: {
+          blue_score: number
+          code: string
+          created_at: string
+          current_challenge: Json | null
+          current_turn: string | null
+          host_id: string
+          host_seen_at: string
+          id: string
+          max_players: number
+          mode: string
+          mystery: Json | null
+          name: string
+          phase: string
+          preset: string
+          recap: Json | null
+          red_score: number
+          round: number
+          settings: Json
+          spin: Json | null
+          status: string
+          team_mode: boolean
+          theme: string
+          transfer_used: boolean
+          turn_ends_at: string | null
+          turn_index: number
+          turn_order: string[]
+          turn_seq: number
+          turn_started_at: string | null
+          updated_at: string
+          used_ids: string[]
+          verdicts: Json
+          victim_id: string | null
+          visibility: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "parties"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      expire_turn: {
+        Args: { _party: string; _turn_seq: number }
+        Returns: {
+          blue_score: number
+          code: string
+          created_at: string
+          current_challenge: Json | null
+          current_turn: string | null
+          host_id: string
+          host_seen_at: string
+          id: string
+          max_players: number
+          mode: string
+          mystery: Json | null
+          name: string
+          phase: string
+          preset: string
+          recap: Json | null
+          red_score: number
+          round: number
+          settings: Json
+          spin: Json | null
+          status: string
+          team_mode: boolean
+          theme: string
+          transfer_used: boolean
+          turn_ends_at: string | null
+          turn_index: number
+          turn_order: string[]
+          turn_seq: number
+          turn_started_at: string | null
+          updated_at: string
+          used_ids: string[]
+          verdicts: Json
+          victim_id: string | null
+          visibility: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "parties"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      heartbeat: { Args: { _party: string }; Returns: undefined }
       is_party_host: {
         Args: { _party: string; _user: string }
         Returns: boolean
@@ -384,6 +545,54 @@ export type Database = {
           theme: string
           transfer_used: boolean
           turn_ends_at: string | null
+          turn_index: number
+          turn_order: string[]
+          turn_seq: number
+          turn_started_at: string | null
+          updated_at: string
+          used_ids: string[]
+          verdicts: Json
+          victim_id: string | null
+          visibility: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "parties"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      next_round: {
+        Args: { _party: string }
+        Returns: {
+          blue_score: number
+          code: string
+          created_at: string
+          current_challenge: Json | null
+          current_turn: string | null
+          host_id: string
+          host_seen_at: string
+          id: string
+          max_players: number
+          mode: string
+          mystery: Json | null
+          name: string
+          phase: string
+          preset: string
+          recap: Json | null
+          red_score: number
+          round: number
+          settings: Json
+          spin: Json | null
+          status: string
+          team_mode: boolean
+          theme: string
+          transfer_used: boolean
+          turn_ends_at: string | null
+          turn_index: number
+          turn_order: string[]
+          turn_seq: number
+          turn_started_at: string | null
           updated_at: string
           used_ids: string[]
           verdicts: Json
@@ -405,11 +614,261 @@ export type Database = {
         Args: { _emoji: string; _message: string }
         Returns: boolean
       }
+      resolve_turn: {
+        Args: {
+          _completed: boolean
+          _party: string
+          _recap?: Json
+          _turn_seq: number
+        }
+        Returns: {
+          blue_score: number
+          code: string
+          created_at: string
+          current_challenge: Json | null
+          current_turn: string | null
+          host_id: string
+          host_seen_at: string
+          id: string
+          max_players: number
+          mode: string
+          mystery: Json | null
+          name: string
+          phase: string
+          preset: string
+          recap: Json | null
+          red_score: number
+          round: number
+          settings: Json
+          spin: Json | null
+          status: string
+          team_mode: boolean
+          theme: string
+          transfer_used: boolean
+          turn_ends_at: string | null
+          turn_index: number
+          turn_order: string[]
+          turn_seq: number
+          turn_started_at: string | null
+          updated_at: string
+          used_ids: string[]
+          verdicts: Json
+          victim_id: string | null
+          visibility: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "parties"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      rotate_turn: { Args: { _party: string }; Returns: string }
+      select_challenge: {
+        Args: {
+          _challenge: Json
+          _mystery: Json
+          _party: string
+          _seconds: number
+          _turn_seq: number
+          _used: string[]
+        }
+        Returns: {
+          blue_score: number
+          code: string
+          created_at: string
+          current_challenge: Json | null
+          current_turn: string | null
+          host_id: string
+          host_seen_at: string
+          id: string
+          max_players: number
+          mode: string
+          mystery: Json | null
+          name: string
+          phase: string
+          preset: string
+          recap: Json | null
+          red_score: number
+          round: number
+          settings: Json
+          spin: Json | null
+          status: string
+          team_mode: boolean
+          theme: string
+          transfer_used: boolean
+          turn_ends_at: string | null
+          turn_index: number
+          turn_order: string[]
+          turn_seq: number
+          turn_started_at: string | null
+          updated_at: string
+          used_ids: string[]
+          verdicts: Json
+          victim_id: string | null
+          visibility: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "parties"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       set_imposter: {
         Args: { _party: string; _round?: number; _user: string }
         Returns: boolean
       }
+      set_spin: {
+        Args: { _ids: string[]; _index: number; _party: string }
+        Returns: boolean
+      }
+      set_victim: {
+        Args: { _party: string; _user: string }
+        Returns: {
+          blue_score: number
+          code: string
+          created_at: string
+          current_challenge: Json | null
+          current_turn: string | null
+          host_id: string
+          host_seen_at: string
+          id: string
+          max_players: number
+          mode: string
+          mystery: Json | null
+          name: string
+          phase: string
+          preset: string
+          recap: Json | null
+          red_score: number
+          round: number
+          settings: Json
+          spin: Json | null
+          status: string
+          team_mode: boolean
+          theme: string
+          transfer_used: boolean
+          turn_ends_at: string | null
+          turn_index: number
+          turn_order: string[]
+          turn_seq: number
+          turn_started_at: string | null
+          updated_at: string
+          used_ids: string[]
+          verdicts: Json
+          victim_id: string | null
+          visibility: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "parties"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      set_voice_state: {
+        Args: { _muted: boolean; _party: string; _voice: boolean }
+        Returns: undefined
+      }
       shares_party: { Args: { _a: string; _b: string }; Returns: boolean }
+      start_match: {
+        Args: { _missions?: string[]; _party: string }
+        Returns: {
+          blue_score: number
+          code: string
+          created_at: string
+          current_challenge: Json | null
+          current_turn: string | null
+          host_id: string
+          host_seen_at: string
+          id: string
+          max_players: number
+          mode: string
+          mystery: Json | null
+          name: string
+          phase: string
+          preset: string
+          recap: Json | null
+          red_score: number
+          round: number
+          settings: Json
+          spin: Json | null
+          status: string
+          team_mode: boolean
+          theme: string
+          transfer_used: boolean
+          turn_ends_at: string | null
+          turn_index: number
+          turn_order: string[]
+          turn_seq: number
+          turn_started_at: string | null
+          updated_at: string
+          used_ids: string[]
+          verdicts: Json
+          victim_id: string | null
+          visibility: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "parties"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      transfer_challenge: {
+        Args: {
+          _party: string
+          _seconds: number
+          _to: string
+          _turn_seq: number
+        }
+        Returns: {
+          blue_score: number
+          code: string
+          created_at: string
+          current_challenge: Json | null
+          current_turn: string | null
+          host_id: string
+          host_seen_at: string
+          id: string
+          max_players: number
+          mode: string
+          mystery: Json | null
+          name: string
+          phase: string
+          preset: string
+          recap: Json | null
+          red_score: number
+          round: number
+          settings: Json
+          spin: Json | null
+          status: string
+          team_mode: boolean
+          theme: string
+          transfer_used: boolean
+          turn_ends_at: string | null
+          turn_index: number
+          turn_order: string[]
+          turn_seq: number
+          turn_started_at: string | null
+          updated_at: string
+          used_ids: string[]
+          verdicts: Json
+          victim_id: string | null
+          visibility: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "parties"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      vote_funny: {
+        Args: { _party: string; _target: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
