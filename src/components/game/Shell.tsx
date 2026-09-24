@@ -32,10 +32,10 @@ export function Shell({ children }: { children: ReactNode }) {
   }, [music]);
 
   return (
-    <div className="relative flex min-h-screen flex-col">
+    <div className="relative flex min-h-dvh flex-col">
       <AnimatedBackground />
 
-      <header className="sticky top-0 z-30 px-4 pt-4">
+      <header className="sticky top-0 z-30 px-3 safe-top sm:px-4">
         <div className="glass mx-auto flex max-w-3xl items-center justify-between rounded-2xl px-4 py-2.5">
           <Link to="/" className="flex items-center gap-2">
             <span className="text-xl">🎲</span>
@@ -68,11 +68,11 @@ export function Shell({ children }: { children: ReactNode }) {
         </div>
       </header>
 
-      <main key={pathname} className="pop-in mx-auto w-full max-w-3xl flex-1 px-4 pb-28 pt-5">
+      <main key={pathname} className="pop-in mx-auto w-full max-w-3xl flex-1 px-3 safe-main pt-5 sm:px-4">
         {children}
       </main>
 
-      <nav className="fixed inset-x-0 bottom-0 z-30 px-4 pb-4">
+      <nav className="fixed inset-x-0 bottom-0 z-30 px-3 safe-bottom sm:px-4">
         <div className="glass mx-auto flex max-w-3xl items-center justify-between rounded-2xl p-1.5">
           {NAV.map(({ to, label, icon: Icon }) => {
             const active = pathname === to;
@@ -81,7 +81,7 @@ export function Shell({ children }: { children: ReactNode }) {
                 key={to}
                 to={to}
                 onClick={() => sfx("tap", sound)}
-                className={`flex flex-1 flex-col items-center gap-0.5 rounded-xl py-2 text-[10px] font-semibold transition ${
+                className={`flex min-h-11 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-xl py-2 text-[10px] touch-manipulation font-semibold transition ${
                   active
                     ? "bg-primary/15 text-primary neon-text"
                     : "text-muted-foreground hover:text-foreground"
