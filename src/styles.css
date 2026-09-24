@@ -551,16 +551,16 @@
   transition:
     transform 0.12s cubic-bezier(0.2, 0.8, 0.2, 1),
     box-shadow 0.12s ease;
-  /* Hover lift only on real pointers — avoids sticky hover / double-tap on phones
-     and keeps the click target from moving away from the cursor on desktop. */
-  @media (hover: hover) and (pointer: fine) {
-    &:hover:not(:disabled) {
-      transform: translateY(-2px) scale(1.02);
-    }
-  }
-  &:active:not(:disabled) {
+  &:active {
     transform: scale(0.96);
     transition-duration: 0.05s;
+  }
+}
+
+/* Hover lift only on real pointers: no sticky hover or double-tap on phones. */
+@media (hover: hover) and (pointer: fine) {
+  .press-3d:hover:not(:disabled) {
+    transform: translateY(-2px) scale(1.02);
   }
 }
 
