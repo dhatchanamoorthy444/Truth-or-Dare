@@ -392,12 +392,52 @@
     border-color: var(--color-border);
   }
 
+  html {
+    -webkit-text-size-adjust: 100%;
+    overscroll-behavior-y: none;
+  }
+
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
     overflow-x: hidden;
+    min-height: 100dvh;
+    -webkit-tap-highlight-color: transparent;
   }
+
+  /* Remove the mobile 300ms tap delay on every interactive element. */
+  button,
+  a,
+  label,
+  select,
+  input,
+  [role="button"] {
+    touch-action: manipulation;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+  }
+
+  /* Heavy glass blur is expensive on phones and makes taps feel laggy. */
+  @media (max-width: 640px) {
+    .glass,
+    .glass-strong {
+      backdrop-filter: blur(12px) saturate(140%);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
 
   h1,
   h2,
