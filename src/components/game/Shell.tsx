@@ -35,7 +35,7 @@ export function Shell({ children }: { children: ReactNode }) {
     <div className="relative flex min-h-dvh flex-col">
       <AnimatedBackground />
 
-      <header className="sticky top-0 z-30 px-3 pt-[max(0.75rem,env(safe-area-inset-top))] sm:px-4">
+      <header className="sticky top-0 z-30 px-3 safe-top sm:px-4">
         <div className="glass mx-auto flex max-w-3xl items-center justify-between rounded-2xl px-4 py-2.5">
           <Link to="/" className="flex items-center gap-2">
             <span className="text-xl">🎲</span>
@@ -68,11 +68,11 @@ export function Shell({ children }: { children: ReactNode }) {
         </div>
       </header>
 
-      <main key={pathname} className="pop-in mx-auto w-full max-w-3xl flex-1 px-3 pb-[calc(7rem+env(safe-area-inset-bottom))] pt-5 sm:px-4">
+      <main key={pathname} className="pop-in mx-auto w-full max-w-3xl flex-1 px-3 safe-main pt-5 sm:px-4">
         {children}
       </main>
 
-      <nav className="fixed inset-x-0 bottom-0 z-30 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-4">
+      <nav className="fixed inset-x-0 bottom-0 z-30 px-3 safe-bottom sm:px-4">
         <div className="glass mx-auto flex max-w-3xl items-center justify-between rounded-2xl p-1.5">
           {NAV.map(({ to, label, icon: Icon }) => {
             const active = pathname === to;

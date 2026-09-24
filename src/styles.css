@@ -577,3 +577,13 @@
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
 }
+
+@utility safe-top {
+  padding-top: max(0.75rem, env(safe-area-inset-top));
+}
+@utility safe-bottom {
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+}
+@utility safe-main {
+  padding-bottom: calc(7rem + env(safe-area-inset-bottom));
+}
