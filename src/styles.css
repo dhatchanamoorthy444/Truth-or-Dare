@@ -506,15 +506,21 @@
 }
 
 @utility press-3d {
-  transform-style: preserve-3d;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
   transition:
-    transform 0.18s cubic-bezier(0.2, 0.8, 0.2, 1),
-    box-shadow 0.18s ease;
-  &:hover {
-    transform: translateY(-3px) rotateX(8deg) scale(1.02);
+    transform 0.12s cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 0.12s ease;
+  /* Hover lift only on real pointers — avoids sticky hover / double-tap on phones
+     and keeps the click target from moving away from the cursor on desktop. */
+  @media (hover: hover) and (pointer: fine) {
+    &:hover:not(:disabled) {
+      transform: translateY(-2px) scale(1.02);
+    }
   }
-  &:active {
-    transform: translateY(1px) scale(0.98);
+  &:active:not(:disabled) {
+    transform: scale(0.96);
+    transition-duration: 0.05s;
   }
 }
 
